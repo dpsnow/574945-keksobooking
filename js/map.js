@@ -12,6 +12,7 @@ var offerTitle = [
 ];
 
 var offerType = ['palace', 'flat', 'house', 'bungalo'];
+var offerTypeRenamed = ['Дворец', 'Квартира', 'Дом', 'Бунгало'];
 var offerCheckInOut = ['12:00', '13:00', '14:00'];
 var offerFeatures = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner', 'description', 'пустая строка'];
 var offerPhotos = ['http://o0.github.io/assets/images/tokyo/hotel1.jpg', 'http://o0.github.io/assets/images/tokyo/hotel2.jpg', 'http://o0.github.io/assets/images/tokyo/hotel3.jpg'];
@@ -19,7 +20,7 @@ var offerPhotos = ['http://o0.github.io/assets/images/tokyo/hotel1.jpg', 'http:/
 
 // Функция случайного числа (с повтором)
 function getRandomInteger(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 // Функция генерации объекта
@@ -33,13 +34,13 @@ function createObject() {
     'offer': {
       // Х Не должны повторяться
       'title': offerTitle[getRandomInteger(0, offerCheckInOut.length)],
-      'address': getRandomInteger(300, 900) + ', ' + getRandomInteger(130, 630),
-      'price': getRandomInteger(1000, 1000000),
-      'type': offerType[getRandomInteger(0, offerType.length)],
+      'address': getRandomInteger(300, 900 + 1) + ', ' + getRandomInteger(130, 631),
+      'price': getRandomInteger(1000, 1000001),
+      'type': offerType[getRandomInteger(0, offerType.length - 1)],
       'rooms': getRandomInteger(1, 5),
       'guests': getRandomInteger(1, 35),
-      'checkin': offerCheckInOut[getRandomInteger(0, offerCheckInOut.length)],
-      'checkout': offerCheckInOut[getRandomInteger(0, offerCheckInOut.length)],
+      'checkin': offerCheckInOut[getRandomInteger(0, offerCheckInOut.length - 1)],
+      'checkout': offerCheckInOut[getRandomInteger(0, offerCheckInOut.length - 1)],
       // Х Случайное кол-во, случаные значения, не должны повторяться
       'features': ['parking', 'washer', 'elevator'],
       'description': '',
@@ -56,21 +57,14 @@ function createObject() {
   return objectRoom;
 }
 
-// Массив, состоящий из 8 сгенерированных JS объектов
-function createOffers(quantityElements) {
-  var listElement = [];
-  for (var i = 0; i < quantityElements - 1; i++) {
-    listElement[i] = createObject();
-  }
-  return listElement;
-}
-var listOffers = createOffers(8, createObject());
 
+
+// УБРАТЬ
 // Функция создания элемента из шаблона
-function createElement(elementTemplate) {
-  var element = elementTemplate.cloneNode(true);
-  return element;
-}
+// function createElement(elementTemplate) {
+//   var element = elementTemplate.cloneNode(true);
+//   return element;
+// }
 
 // Функция изменения атрибутов шаблона
 // function changedAttrsElement(element, options) {
@@ -93,58 +87,11 @@ function changedAttrsElement(options) {
 }*/
 
 
-// DOM узел для работы с шаблонами
-var sectionMap = document.querySelector('.map');
-
-// Шаблон указателя (pin)
-var MapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
 
 
-// Отрисуйте сгенерированные DOM-элементы в блок .map__pins
-var MapPinsList = document.createDocumentFragment();
-
-for (var i = 0; i < listOffers.length; i++) {
-  var pin = createElement(MapPinTemplate, listOffers[i]);
-
-  // Не учтены размеры pin
-  pin.style.left = listOffers[i].location.x + 'px';
-  pin.style.top = listOffers[i].location.y + 'px';
-
-  // Не работает, pin.style.top !== pin[style.top],
-  //                    должно быть pin[style][top]
-
-  // changedAttrsElement(pin, [
-  //   {
-  //     name: 'style.left',
-  //     value: listOffers[i].location.x + 'px'
-  //   },
-  //   {
-  //     name: 'style.top',
-  //     value: listOffers[i].location.y + 'px'
-  //   }
-  // ]);
-
-  changedAttrsElement([
-    {
-      element: pin.querySelector('img'),
-      name: 'src',
-      value: listOffers[i].author.avatar
-    }, {
-      element: pin.querySelector('img'),
-      name: 'alt',
-      value: listOffers[i].offer.title
-    }
-  ]);
 
 
-  MapPinsList.appendChild(pin);
-}
-
-sectionMap.querySelector('.map__pins').appendChild(MapPinsList);
-
-// insertElementBefore(sectionMap, MapPinTemplate, document.querySelector('.map__filters-container'));
-
-
+/*
 // Шаблон карточки
 var MapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
 
@@ -225,3 +172,82 @@ function nameReplacement(changeName) {
   }
 }
 
+*/
+
+// =====================================================================
+// функцию генерации случайных данных,
+// функцию создания DOM-элемента на основе JS-объекта,
+// функцию заполнения блока DOM-элементами на основе массива JS-объектов
+
+// 1.Создайте массив, состоящий из 8 сгенерированных JS объектов
+// 2.На основе данных, созданных в первом пункте, отрисуйте в блок .map__pins, сгенерированные DOM-элементы соответствующие меткам на карте, и заполните их данными из массива.Для вставки элементов используйте DocumentFragment
+// 3.Из сгенерированного массива и шаблона .map__card создайте DOM-элемент объявления, заполните его данными из объекта и вставьте полученный DOM-элемент
+
+function worker() {
+  // 1 - Создать массив объектов из объявлений (offer)
+  var quantityElements = 8;
+  var listOffers = [];
+  for (var i = 0; i < quantityElements; i++) {
+    listOffers[i] = createObject();
+  }
+  // DOM узел для работы с шаблонами
+  var sectionMap = document.querySelector('.map');
+
+  // Создание меток на карте (pin)
+  var MapPinsList = document.createDocumentFragment();
+  // Шаблон указателя (pin)
+  var MapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
+  var PIN_WEIGHT = 50;
+  var PIN_HEIGHT = 70;
+
+  for (i = 0; i < listOffers.length; i++) {
+    // Создание копий pin из шаблона
+    var pin = MapPinTemplate.cloneNode(true);
+    // Изменение положения метки (pin) на основе location (offer)
+    pin.style.left = listOffers[i].location.x - PIN_WEIGHT / 2 + 'px';
+    pin.style.top = listOffers[i].location.y - PIN_HEIGHT + 'px';
+
+  /*
+    Не работает, pin.style.top !== pin[style.top],
+                       должно быть pin[style][top]
+
+    changedAttrsElement(pin, [
+      {
+        name: 'style.left',
+        value: listOffers[i].location.x + 'px'
+      },
+      {
+        name: 'style.top',
+        value: listOffers[i].location.y + 'px'
+      }
+    ]);
+  */
+
+    // Изменение атрибутов элемента (pin) на основе объекта объявление(offer)
+    changedAttrsElement([
+      {
+        element: pin.querySelector('img'),
+        name: 'src',
+        value: listOffers[i].author.avatar
+      }, {
+        element: pin.querySelector('img'),
+        name: 'alt',
+        value: listOffers[i].offer.title
+      }
+    ]);
+    // Добавление сгенирированной метки в DocumentFragment
+    MapPinsList.appendChild(pin);
+  }
+  // Отрисовка сгенерированных меток (pin) в блок .map__pins
+  var parentDiv = sectionMap.querySelector('.map__pins');
+  parentDiv.insertBefore(MapPinsList, document.querySelector('.map__pin--main'));
+
+  // Cоздание карточки объявления (offer) на основе случайного объекта из списка
+  // Шаблон карточки
+  var mapCardTemplate = document.querySelector('template').content.querySelector('.map__card');
+  // Создание копии карточки объявления из шаблона
+  var MapCard = mapCardTemplate.cloneNode(true);
+
+}
+
+worker();
