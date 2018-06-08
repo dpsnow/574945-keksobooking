@@ -10,7 +10,6 @@ var PIN_HEIGHT = 70;
 
 // Шаблон карточки
 var OfferCardTemplate = document.querySelector('template').content.querySelector('.map__card');
-var randomOffers = getRandomIntegerRange(0, quantityOffers);
 
 
 // Данные для объекта
@@ -70,14 +69,14 @@ function searchMatch(value, listValue, listMatch) {
 }
 
 // Функция генерации объекта
-function createObject(i) {
+function createObject(index) {
   var objectRoom = {
     'author': {
-      'avatar': 'img/avatars/user0' + (i + 1) + '.png'
+      'avatar': 'img/avatars/user0' + (index + 1) + '.png'
     },
 
     'offer': {
-      'title': offerTitle[i],
+      'title': offerTitle[index],
       'address': getRandomIntegerRange(300, 900) + ', ' + getRandomIntegerRange(130, 630),
       'price': getRandomIntegerRange(1000, 1000000),
       'type': offerType[getRandomIntegerRange(0, offerType.length - 1)],
@@ -162,16 +161,24 @@ function createCardOffer(data, template) {
   return сardOffer;
 }
 
+function renderElement(parentContainer, element, beforeContainer) {
+  parentContainer.insertBefore(element, beforeContainer);
+}
+
+// Создание списка объявлений
+// Дальше использовать эту переменную для отрисовки элементов, как-будто объявления приходят с сервера
+var listOffers = createListOffers(quantityOffers);
 
 // Отрисовка сгенерированных меток (pin) в блок .map__pins
-containerForMapPins.insertBefore(
-    createMapPin(createListOffers(quantityOffers), MapPinTemplate),
+renderElement(
+    containerForMapPins,
+    createMapPin(listOffers, MapPinTemplate),
     document.querySelector('.map__pin--main')
 );
 
-// Отрисовка слцчайной карточки объявления в блок перед блоком.map__filters-container
-sectionMap.insertBefore(
-    createCardOffer(createListOffers(quantityOffers)[randomOffers], OfferCardTemplate),
+// Отрисовка случайной карточки объявления в блок перед блоком.map__filters-container
+renderElement(
+    sectionMap,
+    createCardOffer(listOffers[getRandomIntegerRange(0, quantityOffers - 1)], OfferCardTemplate),
     sectionMap.querySelector('.map__filters-container')
 );
-
