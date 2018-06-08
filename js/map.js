@@ -8,6 +8,9 @@ var containerForMapPins = sectionMap.querySelector('.map__pins');
 var PIN_WEIGHT = 50;
 var PIN_HEIGHT = 70;
 
+var mapPinMain = document.querySelector('.map__pin--main');
+var сardOfferContainer = sectionMap.querySelector('.map__filters-container');
+
 // Шаблон карточки
 var OfferCardTemplate = document.querySelector('template').content.querySelector('.map__card');
 
@@ -109,7 +112,7 @@ function createListOffers(quantityElements) {
 }
 
 // Функция создание меток
-function createMapPin(data, template) {
+function createMapPinList(data, template) {
   var MapPinsList = document.createDocumentFragment();
   var pin;
   for (var i = 0; i < data.length; i++) {
@@ -172,13 +175,13 @@ var listOffers = createListOffers(quantityOffers);
 // Отрисовка сгенерированных меток (pin) в блок .map__pins
 renderElement(
     containerForMapPins,
-    createMapPin(listOffers, MapPinTemplate),
-    document.querySelector('.map__pin--main')
+    createMapPinList(listOffers, MapPinTemplate),
+    mapPinMain
 );
 
 // Отрисовка случайной карточки объявления в блок перед блоком.map__filters-container
 renderElement(
     sectionMap,
     createCardOffer(listOffers[getRandomIntegerRange(0, quantityOffers - 1)], OfferCardTemplate),
-    sectionMap.querySelector('.map__filters-container')
+    сardOfferContainer
 );
