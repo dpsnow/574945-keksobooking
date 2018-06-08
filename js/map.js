@@ -153,9 +153,9 @@ function createCardOffer(data, template) {
   var photoTemplate = сardOffer.querySelector('.popup__photo');
   сardOffer.querySelector('.popup__photos').innerHTML = '';
   var photo;
-  for (var i = 0; i < data.offer.photos.length; i++) {
+  for (var j = 0; j < data.offer.photos.length; j++) {
     photo = photoTemplate.cloneNode(true);
-    photo.src = data.offer.photos[i];
+    photo.src = data.offer.photos[j];
     сardOffer.querySelector('.popup__photos').appendChild(photo);
   }
   return сardOffer;
