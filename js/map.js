@@ -1,21 +1,21 @@
 'use strict';
+var ESC_KEYCODE = 27;
 var quantityOffers = 8;
-// DOM узел для работы с шаблонами
 var sectionMap = document.querySelector('.map');
-// Шаблон указателя (pin)
+
 var MapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
 var containerForMapPins = sectionMap.querySelector('.map__pins');
 var PIN_WEIGHT = 50;
 var PIN_HEIGHT = 70;
-
-var mapPinMain = document.querySelector('.map__pin--main');
 var сardOfferContainer = sectionMap.querySelector('.map__filters-container');
-
-// Шаблон карточки
 var OfferCardTemplate = document.querySelector('template').content.querySelector('.map__card');
+var adForm = document.querySelector('.ad-form');
+var inputForm = adForm.querySelectorAll('fieldset');
+var PinMain = document.querySelector('.map__pin--main');
 
 
-// Данные для объекта
+var addressForm = adForm.querySelector('#address');
+
 var offerTitle = [
   'Большая уютная квартира',
   'Маленькая неуютная квартира',
@@ -119,8 +119,8 @@ function createMapPinList(data, template) {
     // Создание копий pin из шаблона
     pin = template.cloneNode(true);
     // Изменение положения метки (pin) на основе location указанного в arr
-    pin.style.left = data[i].location.x - PIN_WEIGHT / 2 + 'px';
-    pin.style.top = data[i].location.y - PIN_HEIGHT + 'px';
+    pin.style.left = (data[i].location.x - (PIN_WEIGHT / 2)) + 'px';
+    pin.style.top = (data[i].location.y - PIN_HEIGHT) + 'px';
     // Изменение атрибутов изображения метки на основе указанных в arr
     pin.querySelector('img').src = data[i].author.avatar;
     pin.querySelector('img').alt = data[i].offer.title;
@@ -170,18 +170,98 @@ function renderElement(parentContainer, element, beforeContainer) {
 
 // Создание списка объявлений
 // Дальше использовать эту переменную для отрисовки элементов, как-будто объявления приходят с сервера
-var listOffers = createListOffers(quantityOffers);
+// var listOffers = createListOffers(quantityOffers);
 
 // Отрисовка сгенерированных меток (pin) в блок .map__pins
-renderElement(
-    containerForMapPins,
-    createMapPinList(listOffers, MapPinTemplate),
-    mapPinMain
-);
+// renderElement(
+//     containerForMapPins,
+//     createMapPinList(listOffers, MapPinTemplate),
+//     PinMain
+// );
 
 // Отрисовка случайной карточки объявления в блок перед блоком.map__filters-container
-renderElement(
-    sectionMap,
-    createCardOffer(listOffers[getRandomIntegerRange(0, quantityOffers - 1)], OfferCardTemplate),
-    сardOfferContainer
-);
+// renderElement(
+//     sectionMap,
+//     createCardOffer(listOffers[getRandomIntegerRange(0, quantityOffers - 1)], OfferCardTemplate),
+//     сardOfferContainer
+// );
+
+// Неактивное состояние формы
+function makeFormeDisabled() {
+  inputForm.forEach(function (item) {
+    item.disabled = true;
+  });
+}
+
+// Функция расчета положения метки относительно карты и размеров.
+function calculatePositionPin() {
+  var positionPin = {};
+  var pinMainCoordinate = PinMain.getBoundingClientRect();
+  var mapCoordinate = sectionMap.getBoundingClientRect();
+  var PIN_MAIN_WEIGHT = pinMainCoordinate.width;
+  var PIN_MAIN_HEIGHT = pinMainCoordinate.height;
+  positionPin.x = Math.round(pinMainCoordinate.x - mapCoordinate.x - PIN_MAIN_WEIGHT / 2);
+  positionPin.y = Math.round(pinMainCoordinate.y - mapCoordinate.y - PIN_MAIN_HEIGHT);
+  return positionPin;
+}
+
+function openOfferCard(evt) {
+  closeOfferCard();
+  var target = evt.currentTarget;
+  var offerTitlePin = target.querySelector('img').alt;
+  listOffers.forEach(function (item) {
+    if (item.offer.title === offerTitlePin) {
+      renderElement(
+          sectionMap,
+          createCardOffer(item, OfferCardTemplate),
+          сardOfferContainer);
+      var OfferCardButtonClose = sectionMap.querySelector('.popup__close');
+      OfferCardButtonClose.addEventListener('click', closeOfferCard);
+      document.addEventListener('keydown', onPopupEscPress);
+    }
+  });
+}
+
+function closeOfferCard() {
+  document.removeEventListener('keydown', onPopupEscPress);
+  if (document.querySelector('.map__card')) {
+    document.querySelector('.map__card').remove();
+  }
+}
+
+function onPopupEscPress(evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    closeOfferCard();
+  }
+}
+
+// Функция перевода страницы в активное состояние
+function makePageActive() {
+  sectionMap.classList.remove('map--faded');
+  adForm.classList.remove('ad-form--disabled');
+  inputForm.forEach(function (item) {
+    item.disabled = false;
+  });
+  renderElement(
+      containerForMapPins,
+      createMapPinList(listOffers, MapPinTemplate),
+      PinMain);
+  var pinOffers = sectionMap.querySelectorAll('.map__pin');
+  pinOffers.forEach(function (item) {
+    if (item !== PinMain) {
+      item.addEventListener('click', openOfferCard);
+    }
+  });
+  PinMain.removeEventListener('mouseup', makePageActive);
+}
+
+// Функция перевода страницы в начальное неактивное состояние
+function setStartPage() {
+  makeFormeDisabled();
+  addressForm.value = (calculatePositionPin().x) + ', ' + (calculatePositionPin().y);
+}
+
+setStartPage();
+var listOffers = createListOffers(quantityOffers);
+PinMain.addEventListener('mouseup', makePageActive);
+PinMain.addEventListener('mouseup', calculatePositionPin);
