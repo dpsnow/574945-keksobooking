@@ -5,6 +5,7 @@ var sectionMap = document.querySelector('.map');
 
 var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
 var pinsContainer = sectionMap.querySelector('.map__pins');
+var mapPins = [];
 var PIN_WEIGHT = 50;
 var PIN_HEIGHT = 70;
 var filtersContainer = sectionMap.querySelector('.map__filters-container');
@@ -14,7 +15,10 @@ var pinMain = document.querySelector('.map__pin--main');
 var PIN_MAIN_WIDTH = pinMain.offsetWidth;
 var PIN_MAIN_HEIGHT = pinMain.offsetHeight;
 var addressForm = adForm.address;
+var submitButtonForm = adForm.querySelector('.ad-form__submit');
+var resetButtonForm = adForm.querySelector('.ad-form__reset');
 var currentCardOffer = null;
+var messageSuccess = document.querySelector('.success');
 
 var offerTitle = [
   'Большая уютная квартира',
@@ -34,6 +38,12 @@ var l10nType = {
   house: 'Дом',
   bungalo: 'Бунгало'
 };
+var minPriceType = {
+  palace: 10000,
+  flat: 1000,
+  house: 5000,
+  bungalo: 0
+};
 var offerCheckIn = ['12:00', '13:00', '14:00'];
 var offerCheckOut = ['12:00', '13:00', '14:00'];
 var offerFeatures = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
@@ -42,6 +52,13 @@ var offerPhotos = [
   'http://o0.github.io/assets/images/tokyo/hotel2.jpg',
   'http://o0.github.io/assets/images/tokyo/hotel3.jpg'
 ];
+
+var offerRoomsMatchForm = {
+  '1': ['1'],
+  '2': ['2', '1'],
+  '3': ['3', '2', '1'],
+  '100': ['0'],
+};
 
 
 // Функция случайного числа из диапазона
@@ -120,7 +137,7 @@ function renderMapPins(dataOffers, template) {
     pin.querySelector('img').alt = item.offer.title;
     // Отрисовка метки
     pinsContainer.insertBefore(pin, pinMain);
-
+    mapPins[mapPins.length] = pin;
     pin.addEventListener('click', function (evt) {
       evt.preventDefault();
       if (currentCardOffer) {
@@ -180,7 +197,6 @@ function setAddress() {
   addressForm.readOnly = true;
 }
 
-
 function onCloseOfferCard(evt) {
   evt.preventDefault();
   currentCardOffer.remove();
@@ -193,32 +209,140 @@ function onPopupEscPress(evt) {
   }
 }
 
+function deleteMapPins() {
+  mapPins.forEach(function (item) {
+    item.remove();
+  });
+}
+
+function disabledForm(params) {
+  Array.prototype.forEach.call(adForm, function (item) {
+    item.disabled = params;
+  });
+}
+
 // Функция перевода страницы в активное состояние
-function ActivatePage() {
-  pinMain.removeEventListener('mouseup', ActivatePage);
+function activatePage() {
+  pinMain.removeEventListener('mouseup', activatePage);
   sectionMap.classList.toggle('map--faded', false);
   adForm.classList.toggle('ad-form--disabled', false);
-  Array.prototype.forEach.call(adForm, function (item) {
-    item.disabled = false;
-  });
+  disabledForm(false);
   renderMapPins(listOffers, mapPinTemplate);
   setAddress();
 }
 
 // Функция перевода страницы в неактивное состояние
 function deactivatePage() {
-  Array.prototype.forEach.call(adForm, function (item) {
-    item.disabled = true;
-  });
+  disabledForm(true);
   sectionMap.classList.toggle('map--faded', true);
   adForm.classList.toggle('ad-form--disabled', true);
+  // Удалить введенные данные в форму
+  adForm.reset();
   var mainPinDefaultX = Math.round(pinMain.offsetLeft + PIN_MAIN_WIDTH / 2);
   var mainPinDefaultY = Math.round(pinMain.offsetTop + PIN_MAIN_HEIGHT / 2);
   addressForm.value = mainPinDefaultX + ', ' + mainPinDefaultY;
+  if (currentCardOffer) {
+    currentCardOffer.remove();
+  }
+  deleteMapPins();
+  pinMain.addEventListener('mouseup', activatePage);
 }
 
-deactivatePage();
+// Работа с формой
+function onShowSuccess() {
+  messageSuccess.classList.toggle('hidden', false);
+  setTimeout(function () {
+    onHideSuccess();
+  }, 10000);
+  document.addEventListener('keydown', onHideSuccessEscPress);
+}
+
+function onHideSuccess() {
+  document.removeEventListener('keydown', onHideSuccessEscPress);
+  messageSuccess.classList.toggle('hidden', true);
+}
+
+function onHideSuccessEscPress(evt) {
+  if (evt.keyCode === ESC_KEYCODE) {
+    onHideSuccess();
+  }
+}
+
+function roomGuestMatch() {
+  var capacityValue = adForm.capacity.value;
+  var roomValue = adForm.rooms.value;
+  var guestMatch = offerRoomsMatchForm[roomValue];
+  var resultMatch = false;
+  guestMatch.forEach(function (item) {
+    if (item === capacityValue) {
+      resultMatch = true;
+    }
+  });
+
+  if (!resultMatch) {
+    adForm.capacity.style.boxShadow = '0 0 2px 2px #8e1700';
+    adForm.capacity.setCustomValidity('Количество гостей превышает количество комнат');
+  } else {
+    adForm.capacity.style.boxShadow = '';
+    adForm.capacity.setCustomValidity('');
+  }
+}
+
+function onSubmitCheckValid() {
+  roomGuestMatch();
+  if (!adForm.title.checkValidity()) {
+    adForm.title.style.boxShadow = '0 0 2px 2px #8e1700';
+  }
+  if (!adForm.price.checkValidity()) {
+    adForm.price.style.boxShadow = '0 0 2px 2px #8e1700';
+  }
+}
+
+// ======================================================
+// Замена минимальной цены в зависимости от типа объекта
+adForm.type.addEventListener('change', function () {
+  adForm.price.min = minPriceType[adForm.type.value];
+});
+adForm.price.addEventListener('focus', function () {
+  adForm.price.min = minPriceType[adForm.type.value];
+  adForm.price.style.boxShadow = '';
+});
+
+// Синхронизация времени checkIn и checkOut
+adForm.timein.addEventListener('change', function () {
+  adForm.timeout.value = adForm.timein.value;
+});
+adForm.timeout.addEventListener('change', function () {
+  adForm.timein.value = adForm.timeout.value;
+});
+
+// Проверка соответсвия комнат и гостей при изменении комнат или гостей
+adForm.capacity.addEventListener('change', function () {
+  roomGuestMatch();
+});
+adForm.rooms.addEventListener('change', function () {
+  roomGuestMatch();
+});
+
+adForm.title.addEventListener('change', function () {
+  adForm.title.style.boxShadow = '';
+});
+
 
 var listOffers = createListOffers(quantityOffers);
-pinMain.addEventListener('mouseup', ActivatePage);
+
+deactivatePage();
 pinMain.addEventListener('mouseup', setAddress);
+pinMain.addEventListener('mouseup', activatePage);
+
+submitButtonForm.addEventListener('click', onSubmitCheckValid);
+resetButtonForm.addEventListener('click', deactivatePage);
+
+adForm.addEventListener('submit', function () {
+  if (adForm.checkValidity()) {
+    onShowSuccess();
+  } else {
+    // evt.preventDefault();
+    onSubmitCheckValid();
+  }
+});
