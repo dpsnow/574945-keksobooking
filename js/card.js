@@ -5,8 +5,7 @@
   var sectionMap = document.querySelector('.map');
   var filtersContainer = sectionMap.querySelector('.map__filters-container');
   var offerCardTemplate = document.querySelector('template').content.querySelector('.map__card');
-  window.currentOffer = null;
-  window.cardCurrentOffer = null;
+  var cardCurrentOffer = null;
 
   var l10nType = {
     palace: 'Дворец',
@@ -46,31 +45,30 @@
       photo.src = data.offer.photos[j];
       cardOffer.querySelector('.popup__photos').appendChild(photo);
     }
-
-    cardOffer.querySelector('.popup__close').addEventListener('click', window.cardOffer.close);
-    document.addEventListener('keydown', onPopupEscPress);
+    cardOffer.querySelector('.popup__close').addEventListener('click', window.card.onClose);
+    document.addEventListener('keydown', onEscPress);
     return cardOffer;
   }
 
-  function onPopupEscPress(evt) {
-    window.util.isEscEvent(evt, window.cardOffer.close);
+  function onEscPress(evt) {
+    window.util.isEscEvent(evt, window.card.onClose);
   }
 
-  window.cardOffer = {
-    open: function () {
-      if (window.cardCurrentOffer) {
-        window.cardCurrentOffer .remove();
+  window.card = {
+    onOpen: function (offer) {
+      if (cardCurrentOffer) {
+        cardCurrentOffer.remove();
       }
-      window.cardCurrentOffer = createCardOffer(window.currentOffer, offerCardTemplate);
-      sectionMap.insertBefore(window.cardCurrentOffer, filtersContainer);
-      document.addEventListener('keydown', onPopupEscPress);
+      cardCurrentOffer = createCardOffer(offer, offerCardTemplate);
+      sectionMap.insertBefore(cardCurrentOffer, filtersContainer);
+      document.addEventListener('keydown', onEscPress);
     },
-    close: function () {
-      if (window.cardCurrentOffer) {
-        window.cardCurrentOffer .remove();
-        window.currentOffer = null;
+    onClose: function () {
+      if (cardCurrentOffer) {
+        cardCurrentOffer.remove();
       }
-      document.removeEventListener('keydown', onPopupEscPress);
+      window.pins.makeNotActive();
+      document.removeEventListener('keydown', onEscPress);
     }
   };
 

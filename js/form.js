@@ -14,6 +14,7 @@
   };
   var messageSuccess = document.querySelector('.success');
   var adForm = document.querySelector('.ad-form');
+  var addressField = document.querySelector('.ad-form').address;
   var submitButtonForm = adForm.querySelector('.ad-form__submit');
   var resetButtonForm = adForm.querySelector('.ad-form__reset');
 
@@ -48,6 +49,8 @@
   }
 
   // ======================================================
+
+  // ======================================================
   // Замена минимальной цены в зависимости от типа объекта
   adForm.type.addEventListener('change', function () {
     adForm.price.min = minPriceType[adForm.type.value];
@@ -77,20 +80,17 @@
     adForm.title.style.boxShadow = '';
   });
 
-  adForm.addEventListener('submit', function () {
-    if (adForm.checkValidity()) {
-      onShowSuccess();
-    } else {
-      // evt.preventDefault();
-      onSubmitCheckValid();
-    }
+  adForm.addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    window.error.hide();
+    window.backend.upload(onShowSuccess, window.error.show, new FormData(adForm));
+    adForm.reset();
+    window.form.setAddress();
+    setTimeout(onHideSuccess, 5000);
   });
 
   function onShowSuccess() {
     messageSuccess.classList.toggle('hidden', false);
-    setTimeout(function () {
-      onHideSuccess();
-    }, 10000);
     document.addEventListener('keydown', onHideSuccessEscPress);
   }
 
@@ -119,6 +119,11 @@
         submitButtonForm.addEventListener('click', onSubmitCheckValid);
         resetButtonForm.addEventListener('click', window.page.deactivate);
       }
+    },
+    setAddress: function () {
+      addressField.readOnly = true;
+      var coord = window.util.getAddressPin();
+      addressField.value = Math.round(coord.x) + ', ' + Math.round(coord.y);
     }
   };
 })();
