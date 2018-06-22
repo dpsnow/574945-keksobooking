@@ -4,8 +4,8 @@
   var quantityOffers = 8;
   // Функция генерации объекта
   function createObject(index) {
-    var locationX = window.util.getRandomIntegerRange(300, 900);
-    var locationY = window.util.getRandomIntegerRange(130, 630);
+    var locationX = window.utils.getRandomIntegerRange(300, 900);
+    var locationY = window.utils.getRandomIntegerRange(130, 630);
     var objectRoom = {
       'author': {
         'avatar': 'img/avatars/user0' + (index + 1) + '.png'
@@ -13,17 +13,17 @@
       'offer': {
         'title': window.dataOffer.title[index],
         'address': locationX + ', ' + locationY,
-        'price': window.util.getRandomIntegerRange(1000, 1000000),
-        'type': window.dataOffer.type[window.util.getRandomIntegerRange(0, window.dataOffer.type.length - 1)],
-        'rooms': window.util.getRandomIntegerRange(1, 5),
-        'guests': window.util.getRandomIntegerRange(1, 35),
-        'checkin': window.dataOffer.checkIn[window.util.getRandomIntegerRange(0, window.dataOffer.checkIn.length - 1)],
-        'checkout': window.dataOffer.checkOut[window.util.getRandomIntegerRange(0, window.dataOffer.checkOut.length - 1)],
+        'price': window.utils.getRandomIntegerRange(1000, 1000000),
+        'type': window.dataOffer.type[window.utils.getRandomIntegerRange(0, window.dataOffer.type.length - 1)],
+        'rooms': window.utils.getRandomIntegerRange(1, 5),
+        'guests': window.utils.getRandomIntegerRange(1, 35),
+        'checkin': window.dataOffer.checkIn[window.utils.getRandomIntegerRange(0, window.dataOffer.checkIn.length - 1)],
+        'checkout': window.dataOffer.checkOut[window.utils.getRandomIntegerRange(0, window.dataOffer.checkOut.length - 1)],
         // Случайное кол-во, случаные значения, не должны повторяться
-        'features': window.util.getArrayRandomLength(window.dataOffer.features, window.util.getRandomIntegerRange(1, window.dataOffer.features.length - 1)),
+        'features': window.utils.getArrayRandomLength(window.dataOffer.features, window.utils.getRandomIntegerRange(1, window.dataOffer.features.length - 1)),
         'description': '',
         // Случ. порядок
-        'photos': window.util.getArrayRandomLength(window.dataOffer.photos, window.dataOffer.photos.length)
+        'photos': window.utils.getArrayRandomLength(window.dataOffer.photos, window.dataOffer.photos.length)
       },
       'location': {
         'x': locationX,

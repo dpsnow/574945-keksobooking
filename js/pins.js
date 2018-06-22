@@ -46,14 +46,14 @@
 
   window.pins = {
     renderAll: function (offers) {
-      var pinOfferList = document.createDocumentFragment();
+      var fragment = document.createDocumentFragment();
       var pinOffer;
       offers.forEach(function (item) {
         pinOffer = createPinOffer(item, mapPinTemplate);
-        pinOfferList.appendChild(pinOffer);
+        fragment.appendChild(pinOffer);
         pinsMap.push(pinOffer);
       });
-      pinsContainer.insertBefore(pinOfferList, pinMain);  // Отрисовка меток
+      pinsContainer.insertBefore(fragment, pinMain); // Отрисовка меток
     },
     // удалить все метки на карте
     deleteAll: function () {

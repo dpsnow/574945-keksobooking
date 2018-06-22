@@ -3,15 +3,19 @@
 
   // FIXME: форма (form.js)
   var adForm = document.querySelector('.ad-form');
+  var PIN_ANIMATION = 300; // время анимации метки
 
   window.page = {
-    // Функция перевода страницы в активное состояние
     activate: function () {
+      window.backend.load(window.page.init, window.error.show);
+    },
+    // Функция перевода страницы в активное состояние
+    init: function (dataOffer) {
       adForm.classList.toggle('ad-form--disabled', false);
-      window.backend.load(window.pins.renderAll, window.error.show);
-      window.map.activate();
-      window.form.disabled(false);
-      window.form.setAddress();
+      // window.backend.load(window.map.init, window.error.show);
+      window.map.init(dataOffer);
+      window.form.init();
+      setTimeout(window.utils.onSetAddress, PIN_ANIMATION);
     },
     // Функция перевода страницы в неактивное состояние
     deactivate: function () {
@@ -19,8 +23,7 @@
       window.map.deactivate();
       window.error.hide();
       window.form.disabled(true);
-      // window.form.setAddress();
-      setTimeout(window.form.setAddress, 300);
+      setTimeout(window.utils.onSetAddress, PIN_ANIMATION);
     }
   };
 

@@ -4,7 +4,7 @@
   var ESC_KEYCODE = 27;
 
 
-  window.util = {
+  window.utils = {
     // Функция случайного числа из диапазона
     getRandomIntegerRange: function (min, max) {
       return Math.floor(Math.random() * (max - min + 1) + min);
@@ -17,7 +17,7 @@
 
       for (var currentIndex = shufleArray.length - 1; currentIndex > 0; currentIndex--) {
         randomIndex = Math.floor(Math.random() * (currentIndex + 1));
-        randomIndex = window.util.getRandomIntegerRange(0, currentIndex);
+        randomIndex = window.utils.getRandomIntegerRange(0, currentIndex);
         temporaryValue = shufleArray[currentIndex];
         shufleArray[currentIndex] = shufleArray[randomIndex];
         shufleArray[randomIndex] = temporaryValue;
@@ -57,6 +57,16 @@
         y: (needleShift === -30) ? (parseFloat(pin.style.top) + pin.offsetHeight / 2) : (parseFloat(pin.style.top) + pin.offsetHeight + needleHeight + needleShift)
       };
       return address;
+    },
+    onSetAddress: function () {
+      var addressField = document.querySelector('.ad-form').address;
+      addressField.readOnly = true;
+      var coord = window.utils.getAddressPin();
+      addressField.value = Math.round(coord.x) + ', ' + Math.round(coord.y);
+    },
+    disabledNode: function (elem, value) {
+      elem.disabled = value;
+      elem.style.cursor = value ? 'default' : '';
     }
   };
 })();

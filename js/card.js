@@ -51,7 +51,7 @@
   }
 
   function onEscPress(evt) {
-    window.util.isEscEvent(evt, window.card.onClose);
+    window.utils.isEscEvent(evt, window.card.onClose);
   }
 
   window.card = {

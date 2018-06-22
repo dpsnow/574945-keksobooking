@@ -34,6 +34,7 @@
 
   window.error = {
     show: function (errorCode) {
+      window.error.hide();
       showError(errorCode);
     },
     hide: function () {
