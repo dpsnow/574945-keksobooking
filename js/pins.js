@@ -8,49 +8,62 @@
   var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
   var pinsContainer = sectionMap.querySelector('.map__pins');
   var pinsMap = [];
+  var activePin;
 
   // FIXME: главный маркер используется для отрисовки обычных (вставить до)
   var pinMain = document.querySelector('.map__pin--main');
 
-  function createPinOffer(dataOffer, template) {
+  function createPinOffer(offer, template) {
     // Создание копий pin из шаблона
     var pin = template.cloneNode(true);
     // Изменение положения метки (pin) на основе location указанного в arr
-    pin.style.left = (dataOffer.location.x - (PIN_WIDTH / 2)) + 'px';
-    pin.style.top = (dataOffer.location.y - PIN_HEIGHT) + 'px';
+    pin.style.left = (offer.location.x - (PIN_WIDTH / 2)) + 'px';
+    pin.style.top = (offer.location.y - PIN_HEIGHT) + 'px';
     // Изменение атрибутов изображения метки на основе указанных в arr
-    pin.querySelector('img').src = dataOffer.author.avatar;
-    pin.querySelector('img').alt = dataOffer.offer.title;
+    pin.querySelector('img').src = offer.author.avatar;
+    pin.querySelector('img').alt = offer.offer.title;
+    // debugger;
     pin.addEventListener('click', function (evt) {
       evt.preventDefault();
-      if (window.currentOffer) {
-        window.currentOffer = null;
-      }
-      window.currentOffer = dataOffer;
-      window.cardOffer.open();
+      activatePin(pin);
+      window.card.onOpen(offer);
     });
     return pin;
   }
-  window.pinList = {
-    render: function (dataOffers) {
-      var pinOfferList = document.createDocumentFragment();
+
+  function activatePin(elem) {
+    deactivatePin();
+    activePin = elem;
+    elem.classList.add('map__pin--active');
+  }
+
+  function deactivatePin() {
+    if (activePin) {
+      activePin.classList.remove('map__pin--active');
+      activePin = null;
+    }
+  }
+
+  window.pins = {
+    renderAll: function (offers) {
+      var fragment = document.createDocumentFragment();
       var pinOffer;
-      dataOffers.forEach(function (item) {
+      offers.forEach(function (item) {
         pinOffer = createPinOffer(item, mapPinTemplate);
-        pinOfferList.appendChild(pinOffer);
-        pinsMap[pinsMap.length] = pinOffer;
+        fragment.appendChild(pinOffer);
+        pinsMap.push(pinOffer);
       });
-      // Отрисовка меток
-      pinsContainer.insertBefore(pinOfferList, pinMain);
+      pinsContainer.insertBefore(fragment, pinMain); // Отрисовка меток
     },
     // удалить все метки на карте
-    delete: function () {
+    deleteAll: function () {
       if (pinsMap.length !== 0) {
         pinsMap.forEach(function (item) {
           item.remove();
         });
       }
-    }
+    },
+    makeNotActive: deactivatePin
   };
 
 })();
