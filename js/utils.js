@@ -2,6 +2,8 @@
 
 (function () {
   var ESC_KEYCODE = 27;
+  var DEBOUNCE_INTERVAL = 1500; // ms
+  var lastTimeout;
 
   window.utils = {
     // Функция случайного числа из диапазона
@@ -51,6 +53,12 @@
     disabledNode: function (elem, value) {
       elem.disabled = value;
       elem.style.cursor = value ? 'default' : '';
+    },
+    debounce: function (fun) {
+      if (lastTimeout) {
+        window.clearTimeout(lastTimeout);
+      }
+      lastTimeout = window.setTimeout(fun, DEBOUNCE_INTERVAL);
     }
   };
 })();
