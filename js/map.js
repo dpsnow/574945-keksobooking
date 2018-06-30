@@ -1,20 +1,26 @@
 'use strict';
 (function () {
-  var a = [];
-  var limitArea = { // 180, 680
-    TOP: 130,
-    BOTTOM: 630
-  };
+  var AMOUNT_OFFER = 5;
+  var PIN_MAIN_NEEDLE = 16;
   var sectionMap = document.querySelector('.map');
   var pinMain = sectionMap.querySelector('.map__pin--main');
-  var pinMainStart = {
-    top: pinMain.style.top,
-    left: pinMain.style.left,
-  };
-  var pinMainWidth = pinMain.offsetWidth;
-  var pinMainHeight = pinMain.offsetHeight;
-  var pinMainNeedle = 16;
   var filtersMap = document.querySelector('.map__filters');
+  var limitMapArea = { // 180, 680
+    TOP: 130,
+    BOTTOM: 630,
+    LEFT: 0,
+    RIGHT: sectionMap.offsetWidth
+  };
+  var PinMainParam = {
+    WIDTH: pinMain.offsetWidth,
+    HEIGHT: pinMain.offsetHeight + PIN_MAIN_NEEDLE,
+    MIN_TOP: limitMapArea.TOP - (pinMain.offsetHeight + PIN_MAIN_NEEDLE),
+    MAX_TOP: limitMapArea.BOTTOM - (pinMain.offsetHeight + PIN_MAIN_NEEDLE),
+    MIN_LEFT: limitMapArea.LEFT - pinMain.offsetWidth / 2,
+    MAX_LEFT: limitMapArea.RIGHT - pinMain.offsetWidth / 2,
+    START_TOP: pinMain.offsetTop,
+    START_LEFT: pinMain.offsetLeft
+  };
 
   function hideFilters(value) {
     Array.prototype.forEach.call(filtersMap.children, function (child) {
@@ -49,19 +55,6 @@
     console.log(evt.target);
     console.log('evt.target.name', evt.target.name);
     console.log('evt.target.value', evt.target.value);
-    /* if (evt.target.name === 'features') {
-      if (evt.target.checked === true) {
-        console.log('value', evt.target.value, 'check', evt.target.checked);
-        window.selectFilters['features'].push(evt.target.value);
-      } else {
-        if (window.selectFilters['features'].includes(evt.target.value)) {
-          window.selectFilters['features'].splice()
-        };
-      }
-    } else {
-      var newName = evt.target.name.slice(evt.target.name.indexOf('-') + 1);
-      window.selectFilters[newName] = evt.target.value;
-    } */
     if (evt.target.name === 'features') {
       window.selectFilters.features[evt.target.value] = evt.target.checked;
     } else {
@@ -69,11 +62,24 @@
       window.selectFilters[newName] = evt.target.value;
     }
 
-    var b = filtrateOffers(window.dataOffer);
+    // var b = filtrateOffers(window.dataOffer);
 
-    window.pins.delete();
+    // window.card.onClose();
+    // window.pins.delete();
+    // window.pins.render(b);
+
+    // setTimeout(renderNewOffer, 3000);
+    // debugger;
+    window.utils.debounce(renderNewOffer);
+    // window.utils.debounce(window.pins.render(b));
+
+  }
+
+  function renderNewOffer() {
+    var b = filtrateOffers(window.dataOffer);
     window.card.onClose();
-    window.pins.render(b);
+    window.pins.delete();
+    window.pins.render(filtrateOffers(window.dataOffer));
   }
 
   function selectFilterType(item, filter, index) {
@@ -96,13 +102,9 @@
         console.log('item!', item);
         for (var feature in window.selectFilters.features) {
           if (Object.prototype.hasOwnProperty.call(window.selectFilters.features, feature)) {
-            // debugger;
-
-            if (window.selectFilters.features[feature] === true) {
+            if (window.selectFilters.features[feature] === true && !item.offer.features.includes(feature)) {
               console.log('Фича: ', feature, ' = ', window.selectFilters.features[feature]);
-              if (!item.offer.features.includes(feature)) {
-                return false;
-              }
+              return false;
             }
           }
         }
@@ -157,7 +159,7 @@
         return selectFilterType(item, 'features', i);
       });
 
-    return updateOffers;
+    return window.updateOffers;
   }
 
   filtersMap['housing-type'].addEventListener('change', onChangeFilter);
@@ -171,28 +173,37 @@
 
   function onPinMainMousedown(evt) {
     evt.preventDefault();
+    window.page.activate();
+
+    var pinMainPosition = {
+      currentLeft: evt.clientX,
+      currentTop: evt.clientY
+    };
 
     function onMouseMove(moveEvt) {
       moveEvt.preventDefault();
-      var pinMainCoords = {
-        x: moveEvt.clientX - sectionMap.offsetLeft,
-        y: moveEvt.clientY + window.scrollY,
-        MIN_Y: limitArea.TOP - pinMainHeight / 2 - pinMainNeedle,
-        MAX_Y: limitArea.BOTTOM - pinMainHeight / 2 - pinMainNeedle
+
+      var shift = {
+        x: pinMainPosition.currentLeft - moveEvt.clientX,
+        y: pinMainPosition.currentTop - moveEvt.clientY
       };
 
-      var left = pinMainCoords.x - pinMainWidth / 2;
-      var top = pinMainCoords.y - pinMainHeight / 2;
+      pinMainPosition = {
+        currentLeft: moveEvt.clientX,
+        currentTop: moveEvt.clientY
+      };
 
+      var newLeft = pinMain.offsetLeft - shift.x;
+      var newTop = pinMain.offsetTop - shift.y;
 
-      if (pinMainCoords.y <= pinMainCoords.MIN_Y) {
-        top = pinMainCoords.MIN_Y - pinMainHeight / 2;
-      }
-      if (pinMainCoords.y >= pinMainCoords.MAX_Y) {
-        top = pinMainCoords.MAX_Y - pinMainHeight / 2;
-      }
-      pinMain.style.left = left + 'px';
-      pinMain.style.top = top + 'px';
+      newTop = (newTop < PinMainParam.MIN_TOP) ? PinMainParam.MIN_TOP : newTop;
+      newTop = (newTop > PinMainParam.MAX_TOP) ? PinMainParam.MAX_TOP : newTop;
+
+      newLeft = (newLeft < PinMainParam.MIN_LEFT) ? PinMainParam.MIN_LEFT : newLeft;
+      newLeft = (newLeft > PinMainParam.MAX_LEFT) ? PinMainParam.MAX_LEFT : newLeft;
+
+      pinMain.style.left = newLeft + 'px';
+      pinMain.style.top = newTop + 'px';
     }
 
     function onMouseUp(upEvt) {
@@ -207,26 +218,26 @@
 
   window.pinMain = { // Сброс маркера
     reset: function () {
-      pinMain.style.left = pinMainStart.left;
-      pinMain.style.top = pinMainStart.top;
+      pinMain.style.left = PinMainParam.START_LEFT + 'px';
+      pinMain.style.top = PinMainParam.START_TOP + 'px';
     }
   };
 
   window.map = {
     init: function (dataOffer) {
-      pinMain.removeEventListener('mousedown', window.page.activate);
+      // pinMain.removeEventListener('mousedown', onPinMainMousedown);
       sectionMap.classList.toggle('map--faded', false);
       // window.pins.render(dataOffer);
-      window.dataOffer = dataOffer.slice(0);
+      window.dataOffer = dataOffer.slice(0, AMOUNT_OFFER);
       window.pins.render(dataOffer);
       hideFilters(false); // активировать фильтры
-      pinMain.addEventListener('mousedown', onPinMainMousedown);
+      // pinMain.addEventListener('mousedown', onPinMainMousedown);
       pinMain.addEventListener('mousemove', window.utils.onSetAddress);
     },
     deactivate: function () {
-      pinMain.removeEventListener('mousedown', onPinMainMousedown);
+      // pinMain.removeEventListener('mousedown', onPinMainMousedown);
       pinMain.removeEventListener('mousemove', window.utils.onSetAddress);
-      pinMain.addEventListener('mousedown', window.page.activate);
+      pinMain.addEventListener('mousedown', onPinMainMousedown);
       sectionMap.classList.toggle('map--faded', true);
       hideFilters(true); // спрятать фильтры
       window.pins.delete(); // удалить все метки на карте
