@@ -24,6 +24,7 @@
       window.error.hide();
       window.form.disabled(true);
       setTimeout(window.utils.onSetAddress, PIN_ANIMATION);
+      window.scroll(0, 0);
     }
   };
 

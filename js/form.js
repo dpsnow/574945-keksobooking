@@ -7,21 +7,18 @@
     '100': ['0'],
   };
   var minPriceType = {
-    palace: 10000,
-    flat: 1000,
-    house: 5000,
-    bungalo: 0
+    'palace': 10000,
+    'flat': 1000,
+    'house': 5000,
+    'bungalo': 0
   };
 
-  var formError = false;
   var messageSuccess = document.querySelector('.success');
   var adForm = document.querySelector('.ad-form');
-  var formFooter = adForm.querySelector('.ad-form__element--submit');
+  var formValid = true;
 
   function successSendData() {
     window.backend.upload(showMsgSuccess, window.error.show, new FormData(adForm));
-    adForm.reset();
-    setTimeout(hideMsgSuccess, 5000);
   }
 
   function showMsgSuccess() {
@@ -49,118 +46,37 @@
     });
   }
 
-  // ======================================================
-  // ======================================================
-  // ======================================================
-
-  function checkValidField(elem) {
-    var result = true;
-    if (!elem.checkValidity()) {
-      elem.style.boxShadow = '0 0 2px 2px #8e1700';
-      msgTypeError(elem);
-      result = false;
-    } else {
-      elem.style.boxShadow = '';
+  function showErrorField(elem, msg) {
+    if (elem.classList.contains('invalid-field')) {
+      hideErrorField(elem);
     }
-    return result;
+    elem.parentElement.style.position = 'relative';
+    elem.classList.add('invalid-field');
+    var msgBox = document.createElement('p');
+    msgBox.classList.add('invalid-msgBox');
+    msgBox.textContent = msg;
+    elem.parentElement.appendChild(msgBox);
+    elem.addEventListener('focus', onFocusField);
   }
 
-  function resetField(elem) {
-    elem.style.boxShadow = '';
-  }
-
-  function msgTypeError(elem) {
-    switch (true) {
-      case (elem.validity.tooShort):
-        // return addError('- ' + elem.labels[0].textContent + ':' + elem.validationMessage);
-        return addError('- ' + elem.labels[0].textContent + ' меньше ' + elem.minLength + ' символов. Осталось еще ' + (elem.minLength - elem.value.length));
-      case (elem.validity.rangeUnderflow):
-        return addError('- ' + elem.labels[0].textContent + ' меньше ' + adForm.price.min + '.');
-      default:
-        return addError('- ' + elem.labels[0].textContent + ' отсутствует.');
+  function hideErrorField(elem) {
+    if (elem.classList.contains('invalid-field')) {
+      elem.classList.remove('invalid-field');
+      elem.parentElement.style.position = '';
+      var currentMsgBox = elem.parentElement.querySelector('.invalid-msgBox');
+      elem.parentElement.removeChild(currentMsgBox);
     }
   }
 
-  function checkValidForm() {
-    // debugger;
-    // checkValidField(adForm.title);
-    // checkValidField(adForm.price);
-    // checkGuestMatch();
-
-    var result1 = checkValidField(adForm.title);
-    var result2 = checkValidField(adForm.price);
-    var result3 = checkGuestMatch();
-
-    if (result1 && result2 && result3) {
-      return true;
-    } else {
-      return false;
+  var onFocusField = function (evt) {
+    if (evt.target.classList.contains('invalid-field')) {
+      formValid = true;
+      hideErrorField(evt.target);
     }
-  }
-
-  function resetValidForm() {
-    resetField(adForm.title);
-    resetField(adForm.price);
-    resetField(adForm.capacity);
-  }
-
-  function showError() {
-    hideError();
-    var node = document.createElement('div');
-    node.classList.add('ARRRRR');
-    node.style = 'padding: 15px 5px; text-align: center; border: 1px solid #b71515; width: 100%; background-color: #f1e9e9;';
-    node.style.fontSize = '18px';
-    node.textContent = 'Пожалуйста, исправьте:';
-    var moreErrors = fragment;
-    node.insertBefore(moreErrors, null);
-    adForm.insertBefore(node, formFooter);
-    formError = node;
-  }
-  var fragment = document.createDocumentFragment();
-
-  function addError(msg) {
-    if (msg) {
-      var msgError = document.createElement('span');
-      msgError.style.display = 'block';
-      msgError.textContent = msg || '';
-      fragment.appendChild(msgError);
-      return fragment;
-    }
-    return null;
-  }
-
-  function hideError() {
-    if (formError) {
-      formError.remove();
-    }
-  }
-
-  function onResetForm() {
-    window.page.deactivate();
-  }
-
-  function onSubmitForm(evt) {
-    // debugger;
-    evt.preventDefault();
-    if (checkValidForm()) {
-      successSendData();
-    } else {
-      showError();
-    }
-  }
-
-  // Отслеживать изменения в заголовке
-  function onChangeTitle() {
-    adForm.title.style.boxShadow = adForm.title.checkValidity() ? '' : '0 0 2px 2px #8e1700';
-  }
-  // Отслеживать изменения в цене
-  function onChangePrice() {
-    adForm.price.min = minPriceType[adForm.type.value];
-    adForm.price.placeholder = minPriceType[adForm.type.value];
-  }
+  };
 
   // Отслеживать изменения в комнатах
-  function onChangeRoomGuestMatch() {
+  function roomGuestMatch() {
     var capacityValue = adForm.capacity.value;
     var roomValue = adForm.rooms.value;
     var guestMatch = offerRoomsMatchForm[roomValue];
@@ -173,26 +89,35 @@
     return resultMatch;
   }
 
-  function checkGuestMatch() {
-    var a = onChangeRoomGuestMatch();
-    if (!a) {
-      adForm.capacity.style.boxShadow = '0 0 2px 2px #8e1700';
-      addError('- Количество гостей превышает количество комнат');
-      return false;
-    } else {
-      adForm.capacity.style.boxShadow = '';
-      addError('');
-      return true;
+  function checkValidForm() {
+    if (!adForm.address.value.length) {
+      formValid = false;
+      showErrorField(adForm.address, 'Поле не может быть пустым');
+    }
+    // if (adForm.title.value.length < adForm.title.minLength) {
+    if (adForm.title.validity.valueMissing || adForm.title.validity.tooShort) {
+      formValid = false;
+      showErrorField(adForm.title, 'Заголовок объявления не может быть меньше ' + adForm.title.minLength + ' символов. Не хватает еще ' + (adForm.title.minLength - adForm.title.value.length));
+    }
+    // if (adForm.price.value < adForm.price.min) {
+    if (adForm.price.validity.rangeUnderflow || adForm.title.validity.valueMissing) {
+      formValid = false;
+      showErrorField(adForm.price, 'Для данного типа жилья минимальная цена за ночь - ' + minPriceType[adForm.type.value] + ' руб.');
+    }
+
+    if (!roomGuestMatch()) {
+      formValid = false;
+      showErrorField(adForm.capacity, 'Количество гостей превышает количество комнат');
     }
   }
 
-  function onChangeRooms() {
-    var a = onChangeRoomGuestMatch();
-    if (!a) {
-      adForm.capacity.style.boxShadow = '0 0 2px 2px #8e1700';
-    } else {
-      adForm.capacity.style.boxShadow = '';
-    }
+  // ======================================================
+  // ======================================================
+  // ======================================================
+
+  function onChangePrice() {
+    adForm.price.min = minPriceType[adForm.type.value];
+    adForm.price.placeholder = minPriceType[adForm.type.value];
   }
 
   // Отслеживать изменения в времени заезда
@@ -205,17 +130,39 @@
 
 
   function changeField() {
-    adForm.title.addEventListener('change', onChangeTitle);
+    // adForm.title.addEventListener('change', onChangeTitle);
 
     adForm.type.addEventListener('change', onChangePrice);
 
-    adForm.capacity.addEventListener('change', onChangeRooms);
-    adForm.rooms.addEventListener('change', onChangeRooms);
+    /* adForm.capacity.addEventListener('change', onChangeRooms);
+    adForm.rooms.addEventListener('change', onChangeRooms); */
 
     adForm.timeout.addEventListener('change', onChangeCheckOut);
     adForm.timein.addEventListener('change', onChangeCheckIn);
   }
   changeField();
+
+  function resetValidForm() {
+    hideErrorField(adForm.title);
+    hideErrorField(adForm.address);
+    hideErrorField(adForm.price);
+    hideErrorField(adForm.capacity);
+  }
+
+  function onSubmitForm(evt) {
+    evt.preventDefault();
+    checkValidForm();
+    if (formValid) {
+      successSendData();
+      showMsgSuccess();
+      window.page.deactivate();
+      setTimeout(hideMsgSuccess, 5000);
+    }
+  }
+
+  function onResetForm() {
+    window.page.deactivate();
+  }
 
   window.form = {
     init: function () {
@@ -227,8 +174,7 @@
     },
     disabled: function () {
       toggleDisabledForm(true);
-      hideError();
-      resetValidForm();
+      resetValidForm(); // удалить ошибки валидации
       adForm.reset(); // удалить введенные данные в форму
       adForm.removeEventListener('submit', onSubmitForm);
       adForm.removeEventListener('reset', onResetForm);

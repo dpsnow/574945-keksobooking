@@ -3,7 +3,6 @@
 (function () {
   var ESC_KEYCODE = 27;
 
-
   window.utils = {
     // Функция случайного числа из диапазона
     getRandomIntegerRange: function (min, max) {
@@ -31,21 +30,6 @@
         action();
       }
     },
-    /* NNNgetAddress: function (elem) {
-      var metrics = getComputedStyle(elem, '::after');
-
-      var position = metrics.transform.slice(metrics.transform.indexOf('(') + 1, metrics.transform.indexOf(')')).split(',');
-
-      position = +position[position.length - 1];
-
-      var delta = parseFloat(metrics.borderTopWidth);
-
-      var left = parseFloat(elem.style.left) + (elem.offsetWidth / 2);
-
-      var top = position === -30 ? parseFloat(elem.style.top) + elem.offsetHeight / 2 : parseFloat(elem.style.top) + elem.offsetHeight + delta;
-
-      return { x: left, y: top };
-    }, */
     getAddressPin: function () {
       var pin = document.querySelector('.map__pin--main');
       var needle = getComputedStyle(pin, '::after');

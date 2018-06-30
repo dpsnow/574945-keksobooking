@@ -2,22 +2,13 @@
 (function () {
   var error;
 
-  function textErr(codeErr) {
-    switch (codeErr) {
-      case 400:
-        return 'Неправильный запрос. Статус ответа: ' + codeErr;
-      case 404:
-        return 'Запрашиваемый ресурс не найден. Статус ответа: ' + codeErr;
-      case 403:
-        return 'Отказано в доступе. Статус ответа: ' + codeErr;
-      case 500:
-        return 'Внутренняя ошибка сервера. Статус ответа: ' + codeErr;
-      case 504:
-        return 'Время запроса истекло. Статус ответа: ' + codeErr;
-      default:
-        return 'Произошла ошибка. Статус ответа: ' + codeErr;
-    }
-  }
+  var errorCodeToMsg = {
+    '400': 'Неправильный запрос.',
+    '404': 'Запрашиваемый ресурс не найден.',
+    '403': 'Отказано в доступе.',
+    '500': 'Внутренняя ошибка сервера.',
+    '504': 'Время запроса истекло.'
+  };
 
   function showError(errorCode) {
     var node = document.createElement('div');
@@ -27,7 +18,7 @@
     node.style.right = 0;
     node.style.top = 0;
     node.style.fontSize = '18px';
-    node.textContent = textErr(errorCode);
+    node.textContent = errorCodeToMsg[errorCode] || 'Произошла ошибка. Статус ответа: ' + errorCode;
     document.body.insertAdjacentElement('afterbegin', node);
     error = node;
   }

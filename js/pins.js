@@ -3,15 +3,12 @@
 (function () {
   var PIN_WIDTH = 50;
   var PIN_HEIGHT = 70;
-  // FIXME: используется для маркеров(pin.js), карточек(card-offer.js) и главого маркера (pin-main.js)
   var sectionMap = document.querySelector('.map');
+  var pinMain = document.querySelector('.map__pin--main');
   var mapPinTemplate = document.querySelector('template').content.querySelector('.map__pin');
   var pinsContainer = sectionMap.querySelector('.map__pins');
   var pinsMap = [];
   var activePin;
-
-  // FIXME: главный маркер используется для отрисовки обычных (вставить до)
-  var pinMain = document.querySelector('.map__pin--main');
 
   function createPinOffer(offer, template) {
     // Создание копий pin из шаблона
@@ -22,7 +19,6 @@
     // Изменение атрибутов изображения метки на основе указанных в arr
     pin.querySelector('img').src = offer.author.avatar;
     pin.querySelector('img').alt = offer.offer.title;
-    // debugger;
     pin.addEventListener('click', function (evt) {
       evt.preventDefault();
       activatePin(pin);
@@ -45,7 +41,7 @@
   }
 
   window.pins = {
-    renderAll: function (offers) {
+    render: function (offers) {
       var fragment = document.createDocumentFragment();
       var pinOffer;
       offers.forEach(function (item) {
@@ -56,7 +52,7 @@
       pinsContainer.insertBefore(fragment, pinMain); // Отрисовка меток
     },
     // удалить все метки на карте
-    deleteAll: function () {
+    delete: function () {
       if (pinsMap.length !== 0) {
         pinsMap.forEach(function (item) {
           item.remove();
