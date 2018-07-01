@@ -41,15 +41,20 @@
   }
 
   window.pins = {
-    render: function (offers) {
-      var fragment = document.createDocumentFragment();
-      var pinOffer;
-      offers.forEach(function (item) {
-        pinOffer = createPinOffer(item, mapPinTemplate);
-        fragment.appendChild(pinOffer);
-        pinsMap.push(pinOffer);
-      });
-      pinsContainer.insertBefore(fragment, pinMain); // Отрисовка меток
+    render: function (offers, amount) {
+      if (offers.length === 0) {
+        window.error.show('Нет подходящих объявлений.');
+      } else {
+        window.error.hide();
+        var fragment = document.createDocumentFragment();
+        var pinOffer;
+        offers.slice(0, amount).forEach(function (item) {
+          pinOffer = createPinOffer(item, mapPinTemplate);
+          fragment.appendChild(pinOffer);
+          pinsMap.push(pinOffer);
+        });
+        pinsContainer.insertBefore(fragment, pinMain); // Отрисовка меток
+      }
     },
     // удалить все метки на карте
     delete: function () {

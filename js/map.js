@@ -4,7 +4,7 @@
   var PIN_MAIN_NEEDLE = 16;
   var sectionMap = document.querySelector('.map');
   var pinMain = sectionMap.querySelector('.map__pin--main');
-  var filtersMap = document.querySelector('.map__filters');
+  var filtersMap = sectionMap.querySelector('.map__filters');
   var limitMapArea = { // 180, 680
     TOP: 130,
     BOTTOM: 630,
@@ -18,22 +18,11 @@
     MAX_TOP: limitMapArea.BOTTOM - (pinMain.offsetHeight + PIN_MAIN_NEEDLE),
     MIN_LEFT: limitMapArea.LEFT - pinMain.offsetWidth / 2,
     MAX_LEFT: limitMapArea.RIGHT - pinMain.offsetWidth / 2,
-    START_TOP: pinMain.offsetTop,
-    START_LEFT: pinMain.offsetLeft
+    START_TOP: pinMain.style.top,
+    START_LEFT: pinMain.style.left
   };
-
-  function hideFilters(value) {
-    Array.prototype.forEach.call(filtersMap.children, function (child) {
-      window.utils.disabledNode(child, value);
-      if (child.classList.contains('map__features')) {
-        Array.prototype.forEach.call(child.children, function (item) {
-          window.utils.disabledNode(item, value);
-        });
-      }
-    });
-  }
-
-  window.selectFilters = {
+  var dataOffer = [];
+  var defaultValueFilters = {
     'type': 'any',
     'price': 'any',
     'rooms': 'any',
@@ -48,118 +37,106 @@
     }
   };
 
-  // 'features': ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner']
+  window.selectedFilters = {};
+
+  var housingPrice = {
+    LOW: 10000,
+    HIGH: 50000
+  };
+
+  function hideFilters(value) {
+    Array.prototype.forEach.call(filtersMap.children, function (child) {
+      window.utils.disabledNode(child, value);
+      if (child.classList.contains('map__features')) {
+        Array.prototype.forEach.call(child.children, function (item) {
+          window.utils.disabledNode(item, value);
+        });
+      }
+    });
+  }
 
   // записать выбранные фиильтры
   function onChangeFilter(evt) {
-    console.log(evt.target);
-    console.log('evt.target.name', evt.target.name);
-    console.log('evt.target.value', evt.target.value);
     if (evt.target.name === 'features') {
-      window.selectFilters.features[evt.target.value] = evt.target.checked;
+      window.selectedFilters.features[evt.target.value] = evt.target.checked;
     } else {
       var newName = evt.target.name.slice(evt.target.name.indexOf('-') + 1);
-      window.selectFilters[newName] = evt.target.value;
+      window.selectedFilters[newName] = evt.target.value;
     }
-
-    // var b = filtrateOffers(window.dataOffer);
-
-    // window.card.onClose();
-    // window.pins.delete();
-    // window.pins.render(b);
-
-    // setTimeout(renderNewOffer, 3000);
-    // debugger;
     window.utils.debounce(renderNewOffer);
-    // window.utils.debounce(window.pins.render(b));
-
   }
 
   function renderNewOffer() {
-    var b = filtrateOffers(window.dataOffer);
     window.card.onClose();
     window.pins.delete();
-    window.pins.render(filtrateOffers(window.dataOffer));
+    window.pins.render(filterOffers(dataOffer), AMOUNT_OFFER);
   }
 
-  function selectFilterType(item, filter, index) {
-    var housingPrice = {
-      'low': 10000,
-      'high': 50000
-    };
-    console.log('объявление: ', index, ' - ', item);
-    switch (filter) {
-      case 'price':
-        console.log('ЦЕНА! Фильтр: ', filter, ' = ', window.selectFilters[filter]);
-        switch (window.selectFilters[filter]) {
-          case 'low': return item.offer.price < 10000;
-          case 'middle': return item.offer.price >= 10000 && item.offer.price < 50000;
-          case 'high': return item.offer.price >= 50000;
-          default: return false;
-        }
-      case 'features':
-        console.log('ФИЧИ!', filter);
-        console.log('item!', item);
-        for (var feature in window.selectFilters.features) {
-          if (Object.prototype.hasOwnProperty.call(window.selectFilters.features, feature)) {
-            if (window.selectFilters.features[feature] === true && !item.offer.features.includes(feature)) {
-              console.log('Фича: ', feature, ' = ', window.selectFilters.features[feature]);
-              return false;
+  function checkFilterForAny(item, filter, callback) {
+    if (window.selectedFilters[filter] !== 'any') {
+      console.log('ПУСК!==============');
+      return callback(item, filter);
+    } else {
+      console.log('================ВЫХОД! Фильтр: ' + filter + ' = any');
+      return true;
+    }
+  }
+
+  function filterOnce(item, filter) {
+    console.log('объявление:  - ', item);
+    if (window.selectedFilters[filter] !== 'any') {
+      switch (filter) {
+        case 'price':
+          console.log('ЦЕНА! Фильтр: ', filter, ' = ', window.selectedFilters[filter]);
+          switch (window.selectedFilters[filter]) {
+            case 'low': return item.offer.price < housingPrice.LOW;
+            case 'middle': return item.offer.price >= housingPrice.LOW && item.offer.price < housingPrice.HIGH;
+            case 'high': return item.offer.price >= housingPrice.HIGH;
+            default: return false;
+          }
+        case 'features':
+          console.log('ФИЧИ!', filter);
+          for (var feature in window.selectedFilters.features) {
+            if (Object.prototype.hasOwnProperty.call(window.selectedFilters.features, feature)) {
+              if (window.selectedFilters.features[feature] === true && !item.offer.features.includes(feature)) {
+                console.log('Фича: ', feature, ' = ', window.selectedFilters.features[feature]);
+                return false;
+              }
             }
           }
-        }
-        return true;
-      default:
-        console.log('DEFAULT! Фильтр: ', filter, ' = ', window.selectFilters[filter]);
-        return window.selectFilters[filter] === item.offer[filter].toString();
+          return true;
+        default:
+          console.log('DEFAULT! Фильтр: ', filter, ' = ', window.selectedFilters[filter]);
+          return window.selectedFilters[filter] === item.offer[filter].toString();
+      }
+    } else {
+      console.log('ВЫХОД! Фильтр: ' + filter + ' = any');
+      return true;
     }
   }
 
 
-  function filtrateOffers(dataOffer) {
+  function filterOffers(dataOffer) {
     console.log('===================================');
     console.log('Проверка фильтров');
     console.log('dataOffer', dataOffer);
 
-    window.updateOffers = dataOffer.
-      filter(function (item, i) {
-        if (window.selectFilters['type'] === 'any') {
-          console.log('ВЫХОД! Фильтр: type = any');
-          return true;
-        } else {
-          console.log('Функция возвращает:', selectFilterType(item, 'type', i));
-          return selectFilterType(item, 'type', i);
-        }
+    return dataOffer.
+      filter(function (item) {
+        return checkFilterForAny(item, 'type', filterOnce);
+      }).
+      filter(function (item) {
+        return checkFilterForAny(item, 'price', filterOnce);
+      }).
+      filter(function (item) {
+        return checkFilterForAny(item, 'rooms', filterOnce);
+      }).
+      filter(function (item) {
+        return checkFilterForAny(item, 'guests', filterOnce);
       }).
       filter(function (item, i) {
-        if (window.selectFilters['price'] === 'any') {
-          console.log('ВЫХОД! Фильтр: price = any');
-          return true;
-        } else {
-          return selectFilterType(item, 'price', i);
-        }
-      }).
-      filter(function (item, i) {
-        if (window.selectFilters['rooms'] === 'any') {
-          console.log('ВЫХОД! Фильтр: rooms = any');
-          return true;
-        } else {
-          return selectFilterType(item, 'rooms', i);
-        }
-      }).
-      filter(function (item, i) {
-        if (window.selectFilters['guests'] === 'any') {
-          console.log('ВЫХОД! Фильтр: guests = any');
-          return true;
-        } else {
-          return selectFilterType(item, 'guests', i);
-        }
-      }).
-      filter(function (item, i) { //показать только те где есть фильтр
-        return selectFilterType(item, 'features', i);
+        return filterOnce(item, 'features', i);
       });
-
-    return window.updateOffers;
   }
 
   filtersMap['housing-type'].addEventListener('change', onChangeFilter);
@@ -173,7 +150,7 @@
 
   function onPinMainMousedown(evt) {
     evt.preventDefault();
-    window.page.activate();
+    pinMain.removeEventListener('mousemove', window.page.activate);
 
     var pinMainPosition = {
       currentLeft: evt.clientX,
@@ -218,32 +195,32 @@
 
   window.pinMain = { // Сброс маркера
     reset: function () {
-      pinMain.style.left = PinMainParam.START_LEFT + 'px';
-      pinMain.style.top = PinMainParam.START_TOP + 'px';
+      pinMain.style.left = PinMainParam.START_LEFT;
+      pinMain.style.top = PinMainParam.START_TOP;
     }
   };
 
   window.map = {
-    init: function (dataOffer) {
-      // pinMain.removeEventListener('mousedown', onPinMainMousedown);
-      sectionMap.classList.toggle('map--faded', false);
-      // window.pins.render(dataOffer);
-      window.dataOffer = dataOffer.slice(0, AMOUNT_OFFER);
-      window.pins.render(dataOffer);
-      hideFilters(false); // активировать фильтры
-      // pinMain.addEventListener('mousedown', onPinMainMousedown);
+    init: function (loadData) {
+      pinMain.addEventListener('mousedown', onPinMainMousedown);
+      pinMain.removeEventListener('mousedown', window.page.activate);
       pinMain.addEventListener('mousemove', window.utils.onSetAddress);
+      sectionMap.classList.toggle('map--faded', false);
+      dataOffer = loadData;
+      window.pins.render(window.utils.getArrayRandomLength(loadData, AMOUNT_OFFER));
+      hideFilters(false); // активировать фильтры
     },
     deactivate: function () {
-      // pinMain.removeEventListener('mousedown', onPinMainMousedown);
-      pinMain.removeEventListener('mousemove', window.utils.onSetAddress);
       pinMain.addEventListener('mousedown', onPinMainMousedown);
+      pinMain.addEventListener('mousedown', window.page.activate);
+      pinMain.removeEventListener('mousemove', window.utils.onSetAddress);
       sectionMap.classList.toggle('map--faded', true);
       hideFilters(true); // спрятать фильтры
       window.pins.delete(); // удалить все метки на карте
       window.pinMain.reset(); // вернуть главную метку в центр
       window.card.onClose(); // закрыть карточку объявления
       filtersMap.reset();
+      window.selectedFilters = defaultValueFilters;
     }
   };
 })();
