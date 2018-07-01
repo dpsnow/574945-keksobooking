@@ -73,19 +73,24 @@
     }
   };
 
+  function onEnterPress(evt) {
+    window.utils.isEnterEvent(evt, window.page.activate);
+  }
+
   window.map = {
     init: function (loadData) {
-      pinMain.addEventListener('mousedown', onPinMainMousedown);
       pinMain.removeEventListener('mousedown', window.page.activate);
+      document.removeEventListener('keydown', onEnterPress);
       pinMain.addEventListener('mousemove', window.utils.onSetAddress);
       sectionMap.classList.toggle('map--faded', false);
       window.pins.render(window.utils.getArrayRandomLength(loadData, AMOUNT_OFFER)); // первая отрисовка пинов
       window.filters.activate(loadData);
     },
     deactivate: function () {
+      pinMain.removeEventListener('mousemove', window.utils.onSetAddress);
       pinMain.addEventListener('mousedown', onPinMainMousedown);
       pinMain.addEventListener('mousedown', window.page.activate);
-      pinMain.removeEventListener('mousemove', window.utils.onSetAddress);
+      document.addEventListener('keydown', onEnterPress);
       sectionMap.classList.toggle('map--faded', true);
       window.pins.delete(); // удалить все метки на карте
       window.pinMain.reset(); // вернуть главную метку в центр
