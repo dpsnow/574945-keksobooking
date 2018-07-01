@@ -12,15 +12,11 @@
 
   function showError(msg) {
     var node = document.createElement('div');
-    node.style = 'z-index: 100; margin:0 auto; padding: 5px; text-align: center; vertical-align: middle; background-color: #bd2400; color: white;';
-    node.style.position = 'fixed';
-    node.style.left = 0;
-    node.style.right = 0;
-    node.style.top = 0;
-    node.style.fontSize = '18px';
+    node.classList.add('error-box');
     node.textContent = errorCodeToMsg[msg] || msg || 'Произошла ошибка.';
     document.body.insertAdjacentElement('afterbegin', node);
     error = node;
+    node.addEventListener('click', window.error.hide);
   }
 
   window.error = {
