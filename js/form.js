@@ -17,10 +17,6 @@
   var adForm = document.querySelector('.ad-form');
   var formValid = true;
 
-  function successSendData() {
-    window.backend.upload(showMsgSuccess, window.error.show, new FormData(adForm));
-  }
-
   function showMsgSuccess() {
     messageSuccess.classList.toggle('hidden', false);
     document.addEventListener('keydown', onHideSuccessEscPress);
@@ -75,8 +71,8 @@
     }
   };
 
-  // Отслеживать изменения в комнатах
-  function roomGuestMatch() {
+  // Проверка кол-ва гостей и комнат
+  function checkRoomGuest() {
     var capacityValue = adForm.capacity.value;
     var roomValue = adForm.rooms.value;
     var guestMatch = offerRoomsMatchForm[roomValue];
@@ -94,30 +90,32 @@
       formValid = false;
       showErrorField(adForm.address, 'Поле не может быть пустым');
     }
-    // if (adForm.title.value.length < adForm.title.minLength) {
     if (adForm.title.validity.valueMissing || adForm.title.validity.tooShort) {
       formValid = false;
       showErrorField(adForm.title, 'Заголовок объявления не может быть меньше ' + adForm.title.minLength + ' символов. Не хватает еще ' + (adForm.title.minLength - adForm.title.value.length));
     }
-    // if (adForm.price.value < adForm.price.min) {
-    if (adForm.price.validity.rangeUnderflow || adForm.title.validity.valueMissing) {
+    if (!adForm.price.checkValidity()) {
       formValid = false;
-      showErrorField(adForm.price, 'Для данного типа жилья минимальная цена за ночь - ' + minPriceType[adForm.type.value] + ' руб.');
+      showErrorField(adForm.price, 'Для данного типа жилья мин. цена - ' + minPriceType[adForm.type.value] + ' руб.');
     }
-
-    if (!roomGuestMatch()) {
+    if (!checkRoomGuest()) {
       formValid = false;
-      showErrorField(adForm.capacity, 'Количество гостей превышает количество комнат');
+      showErrorField(adForm.capacity, 'Гостей больше чем комнат');
     }
   }
 
   // ======================================================
   // ======================================================
   // ======================================================
-
-  function onChangePrice() {
+  function changePrice() {
     adForm.price.min = minPriceType[adForm.type.value];
     adForm.price.placeholder = minPriceType[adForm.type.value];
+  }
+
+  function onChangeType() {
+    formValid = true;
+    hideErrorField(adForm.price);
+    changePrice();
   }
 
   // Отслеживать изменения в времени заезда
@@ -128,19 +126,25 @@
     adForm.timein.value = adForm.timeout.value;
   }
 
+  function onChangeRooms() {
+    formValid = true;
+    hideErrorField(adForm.capacity);
+  }
 
-  function changeField() {
-    // adForm.title.addEventListener('change', onChangeTitle);
-
-    adForm.type.addEventListener('change', onChangePrice);
-
-    /* adForm.capacity.addEventListener('change', onChangeRooms);
-    adForm.rooms.addEventListener('change', onChangeRooms); */
-
+  function addListenerField() {
+    adForm.type.addEventListener('change', onChangeType);
     adForm.timeout.addEventListener('change', onChangeCheckOut);
     adForm.timein.addEventListener('change', onChangeCheckIn);
+    adForm.rooms.addEventListener('change', onChangeRooms);
   }
-  changeField();
+
+  function removeListenerField() {
+    adForm.type.removeEventListener('change', onChangeType);
+    adForm.timeout.removeEventListener('change', onChangeCheckOut);
+    adForm.timein.removeEventListener('change', onChangeCheckIn);
+    adForm.rooms.removeEventListener('change', onChangeRooms);
+  }
+
 
   function resetValidForm() {
     hideErrorField(adForm.title);
@@ -153,7 +157,7 @@
     evt.preventDefault();
     checkValidForm();
     if (formValid) {
-      successSendData();
+      window.backend.upload(showMsgSuccess, window.error.show, new FormData(adForm));
       showMsgSuccess();
       window.page.deactivate();
       setTimeout(hideMsgSuccess, 5000);
@@ -166,19 +170,22 @@
 
   window.form = {
     init: function () {
-      onChangePrice();
+      adForm.classList.toggle('ad-form--disabled', false);
+      changePrice();
+      addListenerField();
       toggleDisabledForm(false);
       adForm.noValidate = true;
       adForm.addEventListener('submit', onSubmitForm);
       adForm.addEventListener('reset', onResetForm);
     },
     disabled: function () {
+      adForm.classList.toggle('ad-form--disabled', true);
       toggleDisabledForm(true);
       resetValidForm(); // удалить ошибки валидации
       adForm.reset(); // удалить введенные данные в форму
+      removeListenerField();
       adForm.removeEventListener('submit', onSubmitForm);
       adForm.removeEventListener('reset', onResetForm);
-
     }
   };
 })();

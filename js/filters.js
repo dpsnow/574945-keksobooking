@@ -4,14 +4,7 @@
   var filtersMap = document.querySelector('.map__filters');
 
   var dataOffer = [];
-  window.selectedFeatures = {
-    'wifi': null,
-    'dishwasher': null,
-    'parking': null,
-    'washer': null,
-    'elevator': null,
-    'conditioner': null
-  };
+  window.selectedFeatures = {};
 
   var housingPrice = {
     LOW: 10000,
@@ -29,12 +22,7 @@
     });
   }
 
-  // записать выбранные фиильтры
-
   function onChangeFilter(evt) {
-    console.log('evt.target', evt.target);
-    console.log('evt.target.name', evt.target.name);
-    console.log('evt.target.value', evt.target.value);
     if (evt.target.name === 'features') {
       window.selectedFeatures[evt.target.value] = evt.target.checked;
     }
@@ -48,26 +36,16 @@
   }
 
   function checkFilterForAny(item, filter, callback) {
-    console.log('f(checkFilterForAny) --- Проверяем фильтр: ', filter.name);
     if (filter.value !== 'any') {
-      console.log('filter', filter);
       return callback(item, filter);
     } else {
-      console.log('f(checkFilterForAny) --- ВЫХОД! Фильтр: ' + filter.name + ' = any');
       return true;
     }
   }
 
-  function filterOnce(item, filter, i) {
-
-    console.log('f(filterOnce) --- ПУСК!-----------------');
-    console.log('filter', filter);
-    console.log('filter.name', filter.name);
-    console.log('filter.id', filter.id);
-    console.log('объявление: [', i, '] - ', item);
+  function filterOnce(item, filter) {
     switch (filter.id) {
       case 'housing-price':
-        console.log('ЦЕНА! Фильтр: ', filter.name, ' = ', filter.value);
         switch (filter.value) {
           case 'low': return item.offer.price < housingPrice.LOW;
           case 'middle': return item.offer.price >= housingPrice.LOW && item.offer.price < housingPrice.HIGH;
@@ -75,56 +53,37 @@
           default: return false;
         }
       case 'housing-features':
-        console.log('ФИЧИ!', filter);
         for (var feature in window.selectedFeatures) {
           if (Object.prototype.hasOwnProperty.call(window.selectedFeatures, feature)) {
             if (window.selectedFeatures[feature] === true && !item.offer.features.includes(feature)) {
-              console.log('Фича: ', feature, ' = ', window.selectedFeatures[feature]);
               return false;
             }
           }
         }
         return true;
       default:
-        console.log('DEFAULT! Фильтр: ', filter.name, ' = ', filter.value);
-        // console.log('item.offer.', item.offer);
         var newfilterName = filter.name.slice(filter.name.indexOf('-') + 1);
-        console.log('item.offer[newfilterName]', item.offer[newfilterName]);
         return filter.value === item.offer[newfilterName].toString();
     }
   }
 
 
-  function filterOffers(dataOffer) {
-    console.log('===================================');
-    console.log('Проверка фильтров');
-    console.log('dataOffer', dataOffer);
-
-    return dataOffer.
-      filter(function (item, i) {
-        console.log('===================================');
-        console.log(i, 'ая - ПРОВЕРКА ПО ТИПУ ЖИЛЬЯ');
+  function filterOffers(array) {
+    return array.
+      filter(function (item) {
         return checkFilterForAny(item, filtersMap['housing-type'], filterOnce);
       }).
-      filter(function (item, i) {
-        console.log('===================================');
-        console.log(i, 'ая - ПРОВЕРКА ПО ЦЕНЕ ЖИЛЬЯ');
+      filter(function (item) {
         return checkFilterForAny(item, filtersMap['housing-price'], filterOnce);
       }).
-      filter(function (item, i) {
-        console.log('===================================');
-        console.log(i, 'ая - ПРОВЕРКА ПО КОМНАТАМ');
+      filter(function (item) {
         return checkFilterForAny(item, filtersMap['housing-rooms'], filterOnce);
       }).
-      filter(function (item, i) {
-        console.log('===================================');
-        console.log(i, 'ая - ПРОВЕРКА ПО ГОСТЯМ');
+      filter(function (item) {
         return checkFilterForAny(item, filtersMap['housing-guests'], filterOnce);
       }).
-      filter(function (item, i) {
-        console.log('===================================');
-        console.log(i, 'ая - ПРОВЕРКА ПО ФИЧАМ');
-        return filterOnce(item, filtersMap['housing-features'], i);
+      filter(function (item) {
+        return filterOnce(item, filtersMap['housing-features']);
       });
   }
 
@@ -161,6 +120,7 @@
     },
     deactivate: function () {
       filtersMap.reset();
+      window.selectedFeatures = {}; // сброс выбранных фич
       hideFilters(true);
       removeListener();
     }
