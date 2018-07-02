@@ -27,14 +27,18 @@
     cardOffer.querySelector('.popup__text--time').textContent = 'Заезд после ' + data.offer.checkin + ', выезд до ' + data.offer.checkout;
     cardOffer.querySelector('.popup__description').textContent = data.offer.description;
     cardOffer.querySelector('.popup__avatar').src = data.author.avatar;
-    // Создание новые features
-    cardOffer.querySelector('.popup__features').innerHTML = '';
-    var feature;
-    for (var i = 0; i < data.offer.features.length; i++) {
-      feature = document.createElement('li');
-      feature.classList.add('popup__feature');
-      feature.classList.add('popup__feature--' + data.offer.features[i]);
-      cardOffer.querySelector('.popup__features').appendChild(feature);
+    // Создание новых features
+    if (data.offer.features.length !== 0) {
+      cardOffer.querySelector('.popup__features').innerHTML = '';
+      var feature;
+      for (var i = 0; i < data.offer.features.length; i++) {
+        feature = document.createElement('li');
+        feature.classList.add('popup__feature');
+        feature.classList.add('popup__feature--' + data.offer.features[i]);
+        cardOffer.querySelector('.popup__features').appendChild(feature);
+      }
+    } else {
+      cardOffer.querySelector('.popup__features').remove();
     }
     // Создание фотографий
     var photoTemplate = cardOffer.querySelector('.popup__photo');

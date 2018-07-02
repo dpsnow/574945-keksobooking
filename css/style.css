@@ -822,6 +822,7 @@ fieldset {
 
   background-color: #e4e4de;
   border-radius: 5px;
+  object-fit: cover;
 }
 
 .ad-form__element--submit {
@@ -1215,6 +1216,15 @@ fieldset {
   -webkit-transform: translateX(-50%);
       -ms-transform: translateX(-50%);
           transform: translateX(-50%);
+}
+
+.ad-form-header__preview {
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ad-form-header__preview img {
+  object-fit: cover;
 }
 
 .error-box {
