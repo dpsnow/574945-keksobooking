@@ -4,14 +4,18 @@
   var filtersMap = document.querySelector('.map__filters');
 
   var dataOffer = [];
-  window.selectedFeatures = {};
+  var selectedFeatures = {};
 
   var housingPrice = {
     LOW: 10000,
     HIGH: 50000
   };
 
-  function hideFilters(value) {
+  /**
+   * Переключение доступности фильтров.
+   * @param {Boolean} value - Значение disabled.
+   */
+  function disabledFilters(value) {
     Array.prototype.forEach.call(filtersMap.children, function (child) {
       window.utils.disabledNode(child, value);
       if (child.classList.contains('map__features')) {
@@ -22,99 +26,81 @@
     });
   }
 
-  function onChangeFilter(evt) {
-    if (evt.target.name === 'features') {
-      window.selectedFeatures[evt.target.value] = evt.target.checked;
-    }
-    window.utils.debounce(renderNewOffer);
-  }
-
-  function renderNewOffer() {
-    window.card.onClose();
-    window.pins.delete();
-    window.pins.render(filterOffers(dataOffer), AMOUNT_OFFER);
-  }
-
-  function checkFilterForAny(item, filter, callback) {
+  /**
+   * Проверка соответствия объявления фильтру.
+   * @param {Object} item - Данные объявления.
+   * @param {Node} filter - Фильтр по которому проходит проверка.
+   * @return {Boolean} Результат проверки.
+   */
+  function filterOnce(item, filter) {
     if (filter.value !== 'any') {
-      return callback(item, filter);
+      switch (filter.id) {
+        case 'housing-price':
+          switch (filter.value) {
+            case 'low': return item.offer.price < housingPrice.LOW;
+            case 'middle': return item.offer.price >= housingPrice.LOW && item.offer.price < housingPrice.HIGH;
+            case 'high': return item.offer.price >= housingPrice.HIGH;
+            default: return false;
+          }
+        case 'housing-features':
+          for (var feature in selectedFeatures) {
+            if (Object.prototype.hasOwnProperty.call(selectedFeatures, feature)) {
+              if (selectedFeatures[feature] === true && !item.offer.features.includes(feature)) {
+                return false;
+              }
+            }
+          }
+          return true;
+        default:
+          var newfilterName = filter.name.slice(filter.name.indexOf('-') + 1);
+          return filter.value === item.offer[newfilterName].toString();
+      }
     } else {
       return true;
     }
   }
 
-  function filterOnce(item, filter) {
-    switch (filter.id) {
-      case 'housing-price':
-        switch (filter.value) {
-          case 'low': return item.offer.price < housingPrice.LOW;
-          case 'middle': return item.offer.price >= housingPrice.LOW && item.offer.price < housingPrice.HIGH;
-          case 'high': return item.offer.price >= housingPrice.HIGH;
-          default: return false;
-        }
-      case 'housing-features':
-        for (var feature in window.selectedFeatures) {
-          if (Object.prototype.hasOwnProperty.call(window.selectedFeatures, feature)) {
-            if (window.selectedFeatures[feature] === true && !item.offer.features.includes(feature)) {
-              return false;
-            }
-          }
-        }
-        return true;
-      default:
-        var newfilterName = filter.name.slice(filter.name.indexOf('-') + 1);
-        return filter.value === item.offer[newfilterName].toString();
-    }
-  }
 
-
+  /**
+   * Получение отфильтрованных данных объявлений.
+   * @param {Array} array - Исходный массив с даннными.
+   * @return {Array} Новый массив.
+   */
   function filterOffers(array) {
     return array.
       filter(function (item) {
-        return checkFilterForAny(item, filtersMap['housing-type'], filterOnce)
-          && checkFilterForAny(item, filtersMap['housing-price'], filterOnce)
-          && checkFilterForAny(item, filtersMap['housing-rooms'], filterOnce)
-          && checkFilterForAny(item, filtersMap['housing-guests'], filterOnce)
+        return filterOnce(item, filtersMap['housing-type'])
+          && filterOnce(item, filtersMap['housing-price'])
+          && filterOnce(item, filtersMap['housing-rooms'])
+          && filterOnce(item, filtersMap['housing-guests'])
           && filterOnce(item, filtersMap['housing-features']);
       });
   }
 
-  function addListener() {
-    filtersMap['housing-type'].addEventListener('change', onChangeFilter);
-    filtersMap['housing-price'].addEventListener('change', onChangeFilter);
-    filtersMap['housing-rooms'].addEventListener('change', onChangeFilter);
-    filtersMap['housing-guests'].addEventListener('change', onChangeFilter);
-    filtersMap['features'].forEach(function (item) {
-      if (item.nodeName === 'INPUT') {
-        item.addEventListener('change', onChangeFilter);
-      }
-    });
+  function onChangeFilter(evt) {
+    if (evt.target.name === 'features') {
+      selectedFeatures[evt.target.value] = evt.target.checked;
+    }
+    window.utils.debounce(renderNewPins);
   }
 
-  function removeListener() {
-    filtersMap['housing-type'].removeEventListener('change', onChangeFilter);
-    filtersMap['housing-price'].removeEventListener('change', onChangeFilter);
-    filtersMap['housing-rooms'].removeEventListener('change', onChangeFilter);
-    filtersMap['housing-guests'].removeEventListener('change', onChangeFilter);
-    filtersMap['features'].forEach(function (item) {
-      if (item.nodeName === 'INPUT') {
-        item.removeEventListener('change', onChangeFilter);
-      }
-    });
+  function renderNewPins() {
+    window.card.onClose();
+    window.pins.delete();
+    window.pins.render(filterOffers(dataOffer), AMOUNT_OFFER);
   }
-
 
   window.filters = {
     activate: function (loadData) {
       dataOffer = loadData;
-      hideFilters(false);
-      addListener();
+      disabledFilters(false);
+      filtersMap.addEventListener('change', onChangeFilter);
     },
     deactivate: function () {
       filtersMap.reset();
-      window.selectedFeatures = {}; // сброс выбранных фич
-      hideFilters(true);
-      removeListener();
+      selectedFeatures = {};
+      disabledFilters(true);
+      filtersMap.removeEventListener('change', onChangeFilter);
     }
   };
 })();

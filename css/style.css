@@ -1218,6 +1218,13 @@ fieldset {
           transform: translateX(-50%);
 }
 
+img.ad-form__photo:hover,
+img.ad-form__photo:focus {
+  cursor: pointer;
+  filter: brightness(0.7);
+  box-shadow: 0 0 1px 1px #8e1700;
+}
+
 .ad-form-header__preview {
   justify-content: center;
   overflow: hidden;

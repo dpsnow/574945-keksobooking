@@ -1,22 +1,27 @@
 'use strict';
-
 (function () {
   var ESC_KEYCODE = 27;
   var ENTER_KEYCODE = 13;
-  var DEBOUNCE_INTERVAL = 1000; // ms
+  var DEBOUNCE_INTERVAL = 1000;
+  var pin = document.querySelector('.map__pin--main');
+  var addressField = document.querySelector('.ad-form').address;
   var lastTimeout;
 
   window.utils = {
-    // Функция случайного числа из диапазона
     getRandomIntegerRange: function (min, max) {
       return Math.floor(Math.random() * (max - min + 1) + min);
     },
-    // Функция получения массива заданной длинны c перетасовкой.
+
+    /**
+    * Получение нового перемешаного массива заданного размера
+    * @param {Array} array исходный массив
+    * @param {Number} length размер массива
+    * @return {Array} Новый массив
+    */
     getArrayRandomLength: function (array, length) {
       var shufleArray = array.slice();
       var temporaryValue;
       var randomIndex;
-
       for (var currentIndex = shufleArray.length - 1; currentIndex > 0; currentIndex--) {
         randomIndex = Math.floor(Math.random() * (currentIndex + 1));
         randomIndex = window.utils.getRandomIntegerRange(0, currentIndex);
@@ -27,7 +32,6 @@
       shufleArray.length = length;
       return shufleArray;
     },
-    // Функция првоерки нажания ESC
     isEscEvent: function (evt, action) {
       if (evt.keyCode === ESC_KEYCODE) {
         action();
@@ -38,8 +42,12 @@
         action();
       }
     },
+
+    /**
+    * Получение координат главного пина, с учетом смещения у псевдоэлемента.
+    * @return {Object} Координаты главной метки.
+    */
     getAddressPin: function () {
-      var pin = document.querySelector('.map__pin--main');
       var needle = getComputedStyle(pin, '::after');
       var needleHeight = Math.round(parseFloat(needle.borderTopWidth));
       var needleShift = needle.transform.slice(needle.transform.indexOf('(') + 1, needle.transform.indexOf(')')).split(',');
@@ -50,12 +58,21 @@
       };
       return address;
     },
+
+    /**
+    * Запись координат главного пина в поле формы "Адрес"
+    */
     onSetAddress: function () {
-      var addressField = document.querySelector('.ad-form').address;
       addressField.readOnly = true;
       var coord = window.utils.getAddressPin();
       addressField.value = Math.round(coord.x) + ', ' + Math.round(coord.y);
     },
+
+    /**
+    * Переключение доступности узла.
+    * @param {Node} elem - Выбранный узел.
+    * @param {Boolean} value - Значение disabled.
+    */
     disabledNode: function (elem, value) {
       elem.disabled = value;
       elem.style.cursor = value ? 'default' : '';

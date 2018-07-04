@@ -1,7 +1,6 @@
 'use strict';
 (function () {
-  var error;
-
+  var shownError;
   var errorCodeToMsg = {
     '400': 'Неправильный запрос.',
     '404': 'Запрашиваемый ресурс не найден.',
@@ -11,12 +10,12 @@
   };
 
   function showError(msg) {
-    var node = document.createElement('div');
-    node.classList.add('error-box');
-    node.textContent = errorCodeToMsg[msg] || msg || 'Произошла ошибка.';
-    document.body.insertAdjacentElement('afterbegin', node);
-    error = node;
-    node.addEventListener('click', window.error.hide);
+    var errorBox = document.createElement('div');
+    errorBox.classList.add('error-box');
+    errorBox.textContent = errorCodeToMsg[msg] || msg || 'Произошла ошибка.';
+    document.body.insertAdjacentElement('afterbegin', errorBox);
+    shownError = errorBox;
+    errorBox.addEventListener('click', window.error.hide);
   }
 
   window.error = {
@@ -25,8 +24,8 @@
       showError(msg);
     },
     hide: function () {
-      if (error) {
-        error.remove();
+      if (shownError) {
+        shownError.remove();
       }
     }
   };

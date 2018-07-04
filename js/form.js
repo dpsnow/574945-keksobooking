@@ -1,5 +1,6 @@
 'use strict';
 (function () {
+  var TIME_SHOW_MSG_SUCCESS = 3500;
   var offerRoomsMatchForm = {
     '1': ['1'],
     '2': ['2', '1'],
@@ -40,6 +41,10 @@
     window.utils.isEscEvent(evt, hideMsgSuccess);
   }
 
+  /**
+  * Переключение недоступности формы.
+  * @param {Boolean} value - Значение disabled.
+  */
   function toggleDisabledForm(value) {
     Array.prototype.forEach.call(adForm, function (child) {
       window.utils.disabledNode(child, value);
@@ -51,6 +56,11 @@
     });
   }
 
+  /**
+   * Показ ошибки заполнения поля формы
+   * @param {Node} elem - Поле формы.
+   * @param {String} msg - Текст ошибки.
+   */
   function showErrorField(elem, msg) {
     if (elem.classList.contains('invalid-field')) {
       hideErrorField(elem);
@@ -64,6 +74,10 @@
     elem.addEventListener('focus', onFocusField);
   }
 
+  /**
+   * Скрытие ошибки поля формы
+   * @param {Node} elem - Поле формы.
+   */
   function hideErrorField(elem) {
     if (elem.classList.contains('invalid-field')) {
       elem.classList.remove('invalid-field');
@@ -80,7 +94,10 @@
     }
   }
 
-  // Проверка кол-ва гостей и комнат
+  /**
+   * Проверка соответсвия кол-ва гостей и комнат.
+   * @return {Boolean} Результат проверки.
+   */
   function checkRoomGuest() {
     var capacityValue = adForm.capacity.value;
     var roomValue = adForm.rooms.value;
@@ -94,6 +111,9 @@
     return resultMatch;
   }
 
+  /**
+   * Проверка формы на валидность.
+   */
   function checkValidForm() {
     if (!adForm.address.value.length) {
       formValid = false;
@@ -124,7 +144,6 @@
     changePrice();
   }
 
-  // Отслеживать изменения в времени заезда
   function onChangeCheckIn() {
     adForm.timeout.value = adForm.timein.value;
   }
@@ -135,6 +154,72 @@
   function onChangeRooms() {
     formValid = true;
     hideErrorField(adForm.capacity);
+  }
+
+  /**
+   * Чтение загруженных файлов.
+   * @param {Array} files - Загруженные файлы.
+   * @param {Function} callback - Обработка результата.
+   */
+  function showImage(files, callback) {
+    Array.from(files).forEach(function (item) {
+      var reader = new FileReader();
+      if (item.type.includes('image/')) {
+        reader.readAsDataURL(item);
+        reader.addEventListener('load', function () {
+          callback(reader.result);
+        });
+      }
+    });
+  }
+
+  /**
+   * Отрисовка аватарки.
+   * @param {String} value - Данные загруженого файла
+   */
+  function showAvatar(value) {
+    avatarPreview.src = value;
+    avatarPreview.width = 70;
+    avatarPreview.style.width = '70px';
+    avatarPreview.style.height = '70px';
+    avatarPreview.removeAttribute('height');
+  }
+
+  /**
+   * Отрисовка фотографий.
+   * @param {any} value - Данные загруженого файла
+   */
+  function addPhoto(value) {
+    var image = document.createElement('img');
+    image.src = value;
+    image.classList.add('ad-form__photo');
+    image.alt = 'Фотография объявления';
+    image.width = 70;
+    image.tabIndex = 0;
+    addedPhotos.push(image);
+    photoContainer.insertBefore(image, photoBox);
+    image.addEventListener('click', function () {
+      image.remove();
+    });
+  }
+
+  function deletePhotos() {
+    addedPhotos.forEach(function (item) {
+      item.remove();
+    });
+  }
+
+  function showDefaultAvatar() {
+    avatarPreview.src = avatarDefault.SRC;
+    avatarPreview.width = avatarDefault.WIDTH;
+    avatarPreview.style = '';
+  }
+
+  function onAvatarChange(evt) {
+    showImage(evt.target.files, showAvatar);
+  }
+  function onPhotoChange(evt) {
+    showImage(evt.target.files, addPhoto);
   }
 
   function addListenerField() {
@@ -156,7 +241,7 @@
   }
 
 
-  function resetValidForm() {
+  function hideErrorsForm() {
     hideErrorField(adForm.title);
     hideErrorField(adForm.address);
     hideErrorField(adForm.price);
@@ -170,61 +255,12 @@
       window.backend.upload(showMsgSuccess, window.error.show, new FormData(adForm));
       showMsgSuccess();
       window.page.deactivate();
-      setTimeout(hideMsgSuccess, 5000);
+      setTimeout(hideMsgSuccess, TIME_SHOW_MSG_SUCCESS);
     }
   }
 
   function onResetForm() {
     window.page.deactivate();
-  }
-
-  function showImage(files, callback) {
-    Array.from(files).forEach(function (item) {
-      var reader = new FileReader();
-      if (item.type.includes('image/')) {
-        reader.readAsDataURL(item);
-        reader.addEventListener('load', function () {
-          callback(reader.result);
-        });
-      }
-    });
-  }
-
-  function showAvatar(value) {
-    avatarPreview.src = value;
-    avatarPreview.width = 70;
-    avatarPreview.style.width = '70px';
-    avatarPreview.style.height = '70px';
-    avatarPreview.removeAttribute('height');
-  }
-
-  function addPhoto(value) {
-    var image = document.createElement('img');
-    image.src = value;
-    image.classList.add('ad-form__photo');
-    image.alt = 'Фотография объявления';
-    image.width = 70;
-    addedPhotos.push(image);
-    photoContainer.insertBefore(image, photoBox);
-  }
-
-  function deletePhoto() {
-    addedPhotos.forEach(function (item) {
-      item.remove();
-    });
-  }
-
-  function showDefaultAvatar() {
-    avatarPreview.src = avatarDefault.SRC;
-    avatarPreview.width = avatarDefault.WIDTH;
-    avatarPreview.style = '';
-  }
-
-  function onAvatarChange(evt) {
-    showImage(evt.target.files, showAvatar);
-  }
-  function onPhotoChange(evt) {
-    showImage(evt.target.files, addPhoto);
   }
 
   window.form = {
@@ -240,10 +276,10 @@
     disabled: function () {
       adForm.classList.toggle('ad-form--disabled', true);
       toggleDisabledForm(true);
-      resetValidForm(); // удалить ошибки валидации
-      adForm.reset(); // удалить введенные данные в форму
+      hideErrorsForm();
+      adForm.reset();
       showDefaultAvatar();
-      deletePhoto();
+      deletePhotos();
       removeListenerField();
       adForm.removeEventListener('submit', onSubmitForm);
       adForm.removeEventListener('reset', onResetForm);
