@@ -7,22 +7,24 @@
     '100': ['0'],
   };
   var minPriceType = {
-    palace: 10000,
-    flat: 1000,
-    house: 5000,
-    bungalo: 0
+    'palace': 10000,
+    'flat': 1000,
+    'house': 5000,
+    'bungalo': 0
   };
-
-  var formError = false;
   var messageSuccess = document.querySelector('.success');
   var adForm = document.querySelector('.ad-form');
-  var formFooter = adForm.querySelector('.ad-form__element--submit');
-
-  function successSendData() {
-    window.backend.upload(showMsgSuccess, window.error.show, new FormData(adForm));
-    adForm.reset();
-    setTimeout(hideMsgSuccess, 5000);
-  }
+  var photoBox = adForm.querySelector('.ad-form__photo');
+  var avatarPreview = adForm.querySelector('.ad-form-header__preview').firstElementChild;
+  var avatarDefault = {
+    SRC: avatarPreview.getAttribute('src'),
+    WIDTH: avatarPreview.getAttribute('width')
+  };
+  var photoContainer = adForm.querySelector('.ad-form__photo-container');
+  var avatarChooser = adForm.avatar;
+  var photoChooser = adForm.images;
+  var addedPhotos = [];
+  var formValid = true;
 
   function showMsgSuccess() {
     messageSuccess.classList.toggle('hidden', false);
@@ -49,118 +51,37 @@
     });
   }
 
-  // ======================================================
-  // ======================================================
-  // ======================================================
-
-  function checkValidField(elem) {
-    var result = true;
-    if (!elem.checkValidity()) {
-      elem.style.boxShadow = '0 0 2px 2px #8e1700';
-      msgTypeError(elem);
-      result = false;
-    } else {
-      elem.style.boxShadow = '';
+  function showErrorField(elem, msg) {
+    if (elem.classList.contains('invalid-field')) {
+      hideErrorField(elem);
     }
-    return result;
+    elem.parentElement.style.position = 'relative';
+    elem.classList.add('invalid-field');
+    var msgBox = document.createElement('p');
+    msgBox.classList.add('invalid-msgBox');
+    msgBox.textContent = msg;
+    elem.parentElement.appendChild(msgBox);
+    elem.addEventListener('focus', onFocusField);
   }
 
-  function resetField(elem) {
-    elem.style.boxShadow = '';
-  }
-
-  function msgTypeError(elem) {
-    switch (true) {
-      case (elem.validity.tooShort):
-        // return addError('- ' + elem.labels[0].textContent + ':' + elem.validationMessage);
-        return addError('- ' + elem.labels[0].textContent + ' меньше ' + elem.minLength + ' символов. Осталось еще ' + (elem.minLength - elem.value.length));
-      case (elem.validity.rangeUnderflow):
-        return addError('- ' + elem.labels[0].textContent + ' меньше ' + adForm.price.min + '.');
-      default:
-        return addError('- ' + elem.labels[0].textContent + ' отсутствует.');
+  function hideErrorField(elem) {
+    if (elem.classList.contains('invalid-field')) {
+      elem.classList.remove('invalid-field');
+      elem.parentElement.style.position = '';
+      var currentMsgBox = elem.parentElement.querySelector('.invalid-msgBox');
+      elem.parentElement.removeChild(currentMsgBox);
     }
   }
 
-  function checkValidForm() {
-    // debugger;
-    // checkValidField(adForm.title);
-    // checkValidField(adForm.price);
-    // checkGuestMatch();
-
-    var result1 = checkValidField(adForm.title);
-    var result2 = checkValidField(adForm.price);
-    var result3 = checkGuestMatch();
-
-    if (result1 && result2 && result3) {
-      return true;
-    } else {
-      return false;
+  function onFocusField(evt) {
+    if (evt.target.classList.contains('invalid-field')) {
+      formValid = true;
+      hideErrorField(evt.target);
     }
   }
 
-  function resetValidForm() {
-    resetField(adForm.title);
-    resetField(adForm.price);
-    resetField(adForm.capacity);
-  }
-
-  function showError() {
-    hideError();
-    var node = document.createElement('div');
-    node.classList.add('ARRRRR');
-    node.style = 'padding: 15px 5px; text-align: center; border: 1px solid #b71515; width: 100%; background-color: #f1e9e9;';
-    node.style.fontSize = '18px';
-    node.textContent = 'Пожалуйста, исправьте:';
-    var moreErrors = fragment;
-    node.insertBefore(moreErrors, null);
-    adForm.insertBefore(node, formFooter);
-    formError = node;
-  }
-  var fragment = document.createDocumentFragment();
-
-  function addError(msg) {
-    if (msg) {
-      var msgError = document.createElement('span');
-      msgError.style.display = 'block';
-      msgError.textContent = msg || '';
-      fragment.appendChild(msgError);
-      return fragment;
-    }
-    return null;
-  }
-
-  function hideError() {
-    if (formError) {
-      formError.remove();
-    }
-  }
-
-  function onResetForm() {
-    window.page.deactivate();
-  }
-
-  function onSubmitForm(evt) {
-    // debugger;
-    evt.preventDefault();
-    if (checkValidForm()) {
-      successSendData();
-    } else {
-      showError();
-    }
-  }
-
-  // Отслеживать изменения в заголовке
-  function onChangeTitle() {
-    adForm.title.style.boxShadow = adForm.title.checkValidity() ? '' : '0 0 2px 2px #8e1700';
-  }
-  // Отслеживать изменения в цене
-  function onChangePrice() {
-    adForm.price.min = minPriceType[adForm.type.value];
-    adForm.price.placeholder = minPriceType[adForm.type.value];
-  }
-
-  // Отслеживать изменения в комнатах
-  function onChangeRoomGuestMatch() {
+  // Проверка кол-ва гостей и комнат
+  function checkRoomGuest() {
     var capacityValue = adForm.capacity.value;
     var roomValue = adForm.rooms.value;
     var guestMatch = offerRoomsMatchForm[roomValue];
@@ -173,26 +94,34 @@
     return resultMatch;
   }
 
-  function checkGuestMatch() {
-    var a = onChangeRoomGuestMatch();
-    if (!a) {
-      adForm.capacity.style.boxShadow = '0 0 2px 2px #8e1700';
-      addError('- Количество гостей превышает количество комнат');
-      return false;
-    } else {
-      adForm.capacity.style.boxShadow = '';
-      addError('');
-      return true;
+  function checkValidForm() {
+    if (!adForm.address.value.length) {
+      formValid = false;
+      showErrorField(adForm.address, 'Поле не может быть пустым');
+    }
+    if (adForm.title.validity.valueMissing || adForm.title.validity.tooShort) {
+      formValid = false;
+      showErrorField(adForm.title, 'Заголовок объявления не может быть меньше ' + adForm.title.minLength + ' символов. Не хватает еще ' + (adForm.title.minLength - adForm.title.value.length));
+    }
+    if (!adForm.price.checkValidity()) {
+      formValid = false;
+      showErrorField(adForm.price, 'Для данного типа жилья мин. цена - ' + minPriceType[adForm.type.value] + ' руб.');
+    }
+    if (!checkRoomGuest()) {
+      formValid = false;
+      showErrorField(adForm.capacity, 'Гостей больше чем комнат');
     }
   }
 
-  function onChangeRooms() {
-    var a = onChangeRoomGuestMatch();
-    if (!a) {
-      adForm.capacity.style.boxShadow = '0 0 2px 2px #8e1700';
-    } else {
-      adForm.capacity.style.boxShadow = '';
-    }
+  function changePrice() {
+    adForm.price.min = minPriceType[adForm.type.value];
+    adForm.price.placeholder = minPriceType[adForm.type.value];
+  }
+
+  function onChangeType() {
+    formValid = true;
+    hideErrorField(adForm.price);
+    changePrice();
   }
 
   // Отслеживать изменения в времени заезда
@@ -203,36 +132,121 @@
     adForm.timein.value = adForm.timeout.value;
   }
 
+  function onChangeRooms() {
+    formValid = true;
+    hideErrorField(adForm.capacity);
+  }
 
-  function changeField() {
-    adForm.title.addEventListener('change', onChangeTitle);
-
-    adForm.type.addEventListener('change', onChangePrice);
-
-    adForm.capacity.addEventListener('change', onChangeRooms);
-    adForm.rooms.addEventListener('change', onChangeRooms);
-
+  function addListenerField() {
+    adForm.type.addEventListener('change', onChangeType);
     adForm.timeout.addEventListener('change', onChangeCheckOut);
     adForm.timein.addEventListener('change', onChangeCheckIn);
+    adForm.rooms.addEventListener('change', onChangeRooms);
+    avatarChooser.addEventListener('change', onAvatarChange);
+    photoChooser.addEventListener('change', onPhotoChange);
   }
-  changeField();
+
+  function removeListenerField() {
+    adForm.type.removeEventListener('change', onChangeType);
+    adForm.timeout.removeEventListener('change', onChangeCheckOut);
+    adForm.timein.removeEventListener('change', onChangeCheckIn);
+    adForm.rooms.removeEventListener('change', onChangeRooms);
+    avatarChooser.removeEventListener('change', onAvatarChange);
+    photoChooser.removeEventListener('change', onPhotoChange);
+  }
+
+
+  function resetValidForm() {
+    hideErrorField(adForm.title);
+    hideErrorField(adForm.address);
+    hideErrorField(adForm.price);
+    hideErrorField(adForm.capacity);
+  }
+
+  function onSubmitForm(evt) {
+    evt.preventDefault();
+    checkValidForm();
+    if (formValid) {
+      window.backend.upload(showMsgSuccess, window.error.show, new FormData(adForm));
+      showMsgSuccess();
+      window.page.deactivate();
+      setTimeout(hideMsgSuccess, 5000);
+    }
+  }
+
+  function onResetForm() {
+    window.page.deactivate();
+  }
+
+  function showImage(files, callback) {
+    Array.from(files).forEach(function (item) {
+      var reader = new FileReader();
+      if (item.type.includes('image/')) {
+        reader.readAsDataURL(item);
+        reader.addEventListener('load', function () {
+          callback(reader.result);
+        });
+      }
+    });
+  }
+
+  function showAvatar(value) {
+    avatarPreview.src = value;
+    avatarPreview.width = 70;
+    avatarPreview.style.width = '70px';
+    avatarPreview.style.height = '70px';
+    avatarPreview.removeAttribute('height');
+  }
+
+  function addPhoto(value) {
+    var image = document.createElement('img');
+    image.src = value;
+    image.classList.add('ad-form__photo');
+    image.alt = 'Фотография объявления';
+    image.width = 70;
+    addedPhotos.push(image);
+    photoContainer.insertBefore(image, photoBox);
+  }
+
+  function deletePhoto() {
+    addedPhotos.forEach(function (item) {
+      item.remove();
+    });
+  }
+
+  function showDefaultAvatar() {
+    avatarPreview.src = avatarDefault.SRC;
+    avatarPreview.width = avatarDefault.WIDTH;
+    avatarPreview.style = '';
+  }
+
+  function onAvatarChange(evt) {
+    showImage(evt.target.files, showAvatar);
+  }
+  function onPhotoChange(evt) {
+    showImage(evt.target.files, addPhoto);
+  }
 
   window.form = {
     init: function () {
-      onChangePrice();
+      adForm.classList.toggle('ad-form--disabled', false);
+      changePrice();
+      addListenerField();
       toggleDisabledForm(false);
       adForm.noValidate = true;
       adForm.addEventListener('submit', onSubmitForm);
       adForm.addEventListener('reset', onResetForm);
     },
     disabled: function () {
+      adForm.classList.toggle('ad-form--disabled', true);
       toggleDisabledForm(true);
-      hideError();
-      resetValidForm();
+      resetValidForm(); // удалить ошибки валидации
       adForm.reset(); // удалить введенные данные в форму
+      showDefaultAvatar();
+      deletePhoto();
+      removeListenerField();
       adForm.removeEventListener('submit', onSubmitForm);
       adForm.removeEventListener('reset', onResetForm);
-
     }
   };
 })();

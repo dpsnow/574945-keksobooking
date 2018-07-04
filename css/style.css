@@ -822,6 +822,7 @@ fieldset {
 
   background-color: #e4e4de;
   border-radius: 5px;
+  object-fit: cover;
 }
 
 .ad-form__element--submit {
@@ -1215,4 +1216,50 @@ fieldset {
   -webkit-transform: translateX(-50%);
       -ms-transform: translateX(-50%);
           transform: translateX(-50%);
+}
+
+.ad-form-header__preview {
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ad-form-header__preview img {
+  object-fit: cover;
+}
+
+.error-box {
+  z-index: 100;
+  cursor: pointer;
+  margin: 0px auto;
+  padding: 5px;
+  text-align: center;
+  vertical-align: middle;
+  background-color: #8e1700;
+  color: white;
+  position: fixed;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  font-size: 18px;
+}
+
+.invalid-msgBox {
+  position: absolute;
+  z-index: 1;
+  top: 70%;
+  right: 0;
+  font-size: 14px;
+  text-align: center;
+  margin: 0 25px;
+  padding: 5px 10px;
+  min-height: 25px;
+  font-weight: 500;
+  color: rgb(240, 240, 235);
+  background-color: #8e1700;
+  box-shadow: #8e1700 0 1px 2px 0px;
+  border-radius: 0 0 10px 10px;
+}
+
+.invalid-field {
+  box-shadow: #8e1700 0 0 2px 2px;
 }

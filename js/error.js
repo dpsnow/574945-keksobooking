@@ -2,40 +2,27 @@
 (function () {
   var error;
 
-  function textErr(codeErr) {
-    switch (codeErr) {
-      case 400:
-        return 'Неправильный запрос. Статус ответа: ' + codeErr;
-      case 404:
-        return 'Запрашиваемый ресурс не найден. Статус ответа: ' + codeErr;
-      case 403:
-        return 'Отказано в доступе. Статус ответа: ' + codeErr;
-      case 500:
-        return 'Внутренняя ошибка сервера. Статус ответа: ' + codeErr;
-      case 504:
-        return 'Время запроса истекло. Статус ответа: ' + codeErr;
-      default:
-        return 'Произошла ошибка. Статус ответа: ' + codeErr;
-    }
-  }
+  var errorCodeToMsg = {
+    '400': 'Неправильный запрос.',
+    '404': 'Запрашиваемый ресурс не найден.',
+    '403': 'Отказано в доступе.',
+    '500': 'Внутренняя ошибка сервера.',
+    '504': 'Время запроса истекло.'
+  };
 
-  function showError(errorCode) {
+  function showError(msg) {
     var node = document.createElement('div');
-    node.style = 'z-index: 100; margin:0 auto; padding: 5px; text-align: center; vertical-align: middle; background-color: #bd2400; color: white;';
-    node.style.position = 'fixed';
-    node.style.left = 0;
-    node.style.right = 0;
-    node.style.top = 0;
-    node.style.fontSize = '18px';
-    node.textContent = textErr(errorCode);
+    node.classList.add('error-box');
+    node.textContent = errorCodeToMsg[msg] || msg || 'Произошла ошибка.';
     document.body.insertAdjacentElement('afterbegin', node);
     error = node;
+    node.addEventListener('click', window.error.hide);
   }
 
   window.error = {
-    show: function (errorCode) {
+    show: function (msg) {
       window.error.hide();
-      showError(errorCode);
+      showError(msg);
     },
     hide: function () {
       if (error) {

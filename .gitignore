@@ -11,4 +11,5 @@ node_modules/
 npm-debug.log*
 Thumbs.db
 js/temp-*.js
+js/del-*.js
 temp/
