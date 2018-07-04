@@ -1,9 +1,8 @@
 'use strict';
 (function () {
-  var PIN_ANIMATION = 300; // время анимации метки
+  var PIN_ANIMATION = 300;
 
   window.page = {
-    // Функция перевода страницы в активное состояние
     activate: function () {
       window.backend.load(function (loadData) {
         window.map.init(loadData);
@@ -11,7 +10,6 @@
         setTimeout(window.utils.onSetAddress, PIN_ANIMATION);
       }, window.error.show);
     },
-    // Функция перевода страницы в неактивное состояние
     deactivate: function () {
       window.map.deactivate();
       window.error.hide();
@@ -20,6 +18,5 @@
       window.scroll(0, 0);
     }
   };
-
   window.page.deactivate();
 })();
