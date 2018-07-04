@@ -48,7 +48,7 @@
         window.error.hide();
         var fragment = document.createDocumentFragment();
         var pinOffer;
-        offers.slice(0, amount).forEach(function (item) {
+        window.utils.getArrayRandomLength(offers, amount).forEach(function (item) {
           pinOffer = createPinOffer(item, mapPinTemplate);
           fragment.appendChild(pinOffer);
           pinsMap.push(pinOffer);

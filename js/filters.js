@@ -71,19 +71,11 @@
   function filterOffers(array) {
     return array.
       filter(function (item) {
-        return checkFilterForAny(item, filtersMap['housing-type'], filterOnce);
-      }).
-      filter(function (item) {
-        return checkFilterForAny(item, filtersMap['housing-price'], filterOnce);
-      }).
-      filter(function (item) {
-        return checkFilterForAny(item, filtersMap['housing-rooms'], filterOnce);
-      }).
-      filter(function (item) {
-        return checkFilterForAny(item, filtersMap['housing-guests'], filterOnce);
-      }).
-      filter(function (item) {
-        return filterOnce(item, filtersMap['housing-features']);
+        return checkFilterForAny(item, filtersMap['housing-type'], filterOnce)
+          && checkFilterForAny(item, filtersMap['housing-price'], filterOnce)
+          && checkFilterForAny(item, filtersMap['housing-rooms'], filterOnce)
+          && checkFilterForAny(item, filtersMap['housing-guests'], filterOnce)
+          && filterOnce(item, filtersMap['housing-features']);
       });
   }
 

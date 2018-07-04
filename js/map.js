@@ -54,6 +54,8 @@
 
       pinMain.style.left = newLeft + 'px';
       pinMain.style.top = newTop + 'px';
+
+      window.utils.onSetAddress();
     }
 
     function onMouseUp(upEvt) {
@@ -81,13 +83,11 @@
     init: function (loadData) {
       pinMain.removeEventListener('mousedown', window.page.activate);
       document.removeEventListener('keydown', onEnterPress);
-      pinMain.addEventListener('mousemove', window.utils.onSetAddress);
       sectionMap.classList.toggle('map--faded', false);
-      window.pins.render(window.utils.getArrayRandomLength(loadData, AMOUNT_OFFER)); // первая отрисовка пинов
+      window.pins.render(loadData, AMOUNT_OFFER); // первая отрисовка пинов
       window.filters.activate(loadData);
     },
     deactivate: function () {
-      pinMain.removeEventListener('mousemove', window.utils.onSetAddress);
       pinMain.addEventListener('mousedown', onPinMainMousedown);
       pinMain.addEventListener('mousedown', window.page.activate);
       document.addEventListener('keydown', onEnterPress);
